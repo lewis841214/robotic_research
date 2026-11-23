@@ -29,7 +29,7 @@
     "hardware_fit": "Local note: ideal online RL, about 6\u20138 GB VRAM. The paper's reported runs use H100 80 GB."
   },
   "data": {
-    "note": "The paper's 129,514-motion library was not downloaded. The W&B registry requires an API key. A 64-frame random G1 clip was opened so train.py could build the env. The replay-buffer schema was read from the runner. The GenCoord run measured full state 71, goal 670, action 29, and sim context 33.",
+    "note": "The paper's 129,514-motion library was not downloaded. The W&B registry requires an API key. A 64-frame random G1 clip was opened so train.py could build the env. The replay-buffer schema was read from the runner. The GenCoord run measured full state 71, goal 670, action 29, and sim context 33. extracts/replay_buffer_example.json is a 27-frame rollout of the smoke-run actor on that clip.",
     "datasets": [
       {
         "name": "Motion library",
@@ -103,7 +103,7 @@
         "volume": "Default buffer length 1000 steps per environment. World-model windows are 8 steps, batch 2048, 10 batches. Policy imagination uses batch 4096 and horizon 32.",
         "sampling": "New transitions replace the oldest. Imagination seeds are sampled from the buffer.",
         "augmentation": "None inside the buffer. Noise is applied at collection and again when the policy reads a predicted observation.",
-        "tier": "code",
+        "tier": "loaded",
         "status": "verified",
         "sources": [
           {
@@ -204,12 +204,12 @@
           ]
         },
         "example": {
-          "status": "missing",
-          "view": "none",
-          "fps": null,
-          "num_frames": null,
-          "video_path": null,
-          "sidecar_path": null,
+          "status": "verified",
+          "view": "sim_rgb",
+          "fps": 50,
+          "num_frames": 27,
+          "video_path": "extracts/replay_buffer_example.mp4",
+          "sidecar_path": "extracts/replay_buffer_example.json",
           "shows": [
             "observation",
             "trained_checkpoint_action",
@@ -218,10 +218,15 @@
           "trained_checkpoint": {
             "action_name": "joint_pos",
             "dim": 29,
-            "checkpoint_path": null,
-            "note": "No clip aligns a sim frame with the trained actor's 29-d joint_pos action and the logged next state. The smoke-run actor.pt was not replayed per frame."
+            "checkpoint_path": "repo/logs/SuperMimic-GenCoord-G1/2026-11-21_01-24-36/actor.pt",
+            "note": "27 frames at the 0.02 s control step. The actor is the paper-card-loss smoke checkpoint, which took one optimizer step. The clip ends when the 64-frame random motion ends. Green bars are that checkpoint's 29-d joint_pos. Amber bars are the logged 71-d full state after the step. The white body is the simulated robot and the green body is the reference motion."
           },
-          "sources": []
+          "sources": [
+            {
+              "kind": "run",
+              "locator": "extracts/run_example.txt and extracts/replay_buffer_example.json"
+            }
+          ]
         }
       }
     ],
@@ -349,7 +354,7 @@
         ]
       }
     ],
-    "runtime": "Device cuda:0, NVIDIA GeForce RTX 5070 Ti, torch 2.15.0+cu132. play.py SuperMimic-GenCoord-G1 exited 2: --wandb-path is required and the README does not name a run. train.py then ran 8 iterations with 32 envs. The first pass never called the optimizer, because the only scheduled update fired when the replay buffer held 1 frame and the world-model horizon is 8. A second pass kept horizons 8 and 32, set the world-model batch to 1x32 and the policy batch to 32, and at iteration 7 logged Loss/state 3.1136, Loss/joint_pos 0.0383, Loss/joint_vel 7.0647, Policy/reward -0.3996, Policy/value_function 0.3386. World-model step 32.0 s, policy step 151.4 s. The run printed State Dim 71, Goal Dim 670, sim context 33 (foot_friction, base_com, encoder_bias), representation full 71, rep 68, pred 35. Environment step 0.02 s."
+    "runtime": "Device cuda:0, NVIDIA GeForce RTX 5070 Ti, torch 2.15.0+cu132. play.py SuperMimic-GenCoord-G1 exited 2 when called without a checkpoint: --wandb-path is required and the README does not name a run. train.py then ran 8 iterations with 32 envs. The first pass never called the optimizer, because the only scheduled update fired when the replay buffer held 1 frame and the world-model horizon is 8. A second pass kept horizons 8 and 32, set the world-model batch to 1x32 and the policy batch to 32, and at iteration 7 logged Loss/state 3.1136, Loss/joint_pos 0.0383, Loss/joint_vel 7.0647, Policy/reward -0.3996, Policy/value_function 0.3386. World-model step 32.0 s, policy step 151.4 s. The run printed State Dim 71, Goal Dim 670, sim context 33 (foot_friction, base_com, encoder_bias), representation full 71, rep 68, pred 35. Environment step 0.02 s. extracts/capture_example.py then loaded that actor and rolled out 27 frames on one env. The episode ended on motion_end. Each frame stores the 29-d checkpoint action and the 71-d next full state."
   },
   "compute": [
     {
@@ -812,10 +817,9 @@
     }
   ],
   "gaps": [
-    "play.py did not roll out a policy. It exits unless --wandb-path names a run, and the README does not name one.",
-    "The W&B motion registry was not downloaded. The training step used a 64-frame random G1 clip, so the 129,514-motion library is still unread.",
-    "The smoke run used 32 environments and batch 32. The paper's reported run is one H100 for 3 hours, and the code default is 4096 environments with world-model batch 2048.",
-    "The 6\u20138 GB local feasibility note is the planning label. This pass did not record peak VRAM.",
-    "No example clip aligns a sim frame with the trained actor's 29-d action and the logged next state."
+    "play.py was not opened as a viewer. Without --checkpoint or --wandb-path it exits 2, and the README does not name a run. The example clip loads the local actor directly.",
+    "The W&B motion registry was not downloaded. The training step and the example clip use a 64-frame random G1 clip, so the 129,514-motion library is still unread.",
+    "The smoke run used 32 environments and batch 32. The example actor took one optimizer step. The paper's reported run is one H100 for 3 hours, and the code default is 4096 environments with world-model batch 2048.",
+    "The 6–8 GB local feasibility note is the planning label. This pass did not record peak VRAM."
   ]
 }

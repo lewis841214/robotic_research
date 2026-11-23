@@ -1,0 +1,14 @@
+command: uv run src/supermimic/scripts/play.py SuperMimic-GenCoord-G1 --motion-file /mnt/d/robotic_research/corpus/papers/supermimic/extracts/g1_random_clip.npz --num-steps-rollout 1 --device cuda:0
+device: cuda:0 NVIDIA GeForce RTX 5070 Ti
+note: README play entry requires --wandb-path. No published run path is named in the README, and no W&B API key is configured.
+/mnt/d/robotic_research/corpus/papers/supermimic/repo/.venv/lib/python3.13/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+╭─ Required options ───────────────────────────╮
+│ Missing from src/supermimic/scripts/play.py: │
+│     --wandb-path STR                         │
+│         (required)                           │
+│ ──────────────────────────────────────────── │
+│ For full helptext, run:                      │
+│     src/supermimic/scripts/play.py --help    │
+╰──────────────────────────────────────────────╯
+exit_code: 2

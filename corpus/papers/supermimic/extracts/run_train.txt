@@ -1,0 +1,932 @@
+command: WANDB_MODE=offline MUJOCO_GL=egl uv run src/supermimic/scripts/train.py SuperMimic-GenCoord-G1 --motion-file /mnt/d/robotic_research/corpus/papers/supermimic/extracts/g1_random_clip.npz --num-envs 32 --runner.max_iterations 8 --runner.log_interval 1 --runner.run_name paper-card-smoke --device cuda:0
+device: cuda:0 NVIDIA GeForce RTX 5070 Ti
+note: The W&B motion registry needs an API key, so this pass substitutes a 64-frame random Unitree G1 clip. max_iterations is 8 because the runner skips the optimizer until the replay buffer holds the world-model horizon of 8. num_envs is 32 rather than the default 4096.
+/mnt/d/robotic_research/corpus/papers/supermimic/repo/.venv/lib/python3.13/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[INFO] Loading environment: SuperMimic-GenCoord-G1
+[INFO] Using local motion file: /mnt/d/robotic_research/corpus/papers/supermimic/extracts/g1_random_clip.npz
+Warp 1.19.0 initialized:
+   CUDA Toolkit 13.4, Driver 13.3
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA GeForce RTX 5070 Ti" (16 GiB, sm_120, mempool enabled)
+   Kernel cache:
+     /root/.cache/warp/1.19.0
+Module mujoco_warp._src.smooth 368b5b3 load on device 'cuda:0' took 3444.40 ms  (compiled)
+Module _joint_tendon__locals__kernel_a3fb0007 a3fb000 load on device 'cuda:0' took 120.14 ms  (compiled)
+Module _tendon_armature__locals__kernel_6be7c6c8 6be7c6c load on device 'cuda:0' took 117.41 ms  (compiled)
+Module _nxn_broadphase__locals__kernel_9b43d028 9b43d02 load on device 'cuda:0' took 248.78 ms  (compiled)
+Module _nxn_broadphase__locals__kernel_9b43d028 8a73436 load on device 'cuda:0' took 780.96 ms  (compiled)
+Module _primitive_narrowphase__locals__primitive_narrowphase_51608116 5160811 load on device 'cuda:0' took 558.49 ms  (compiled)
+Module mujoco_warp._src.constraint 9feb269 load on device 'cuda:0' took 69.63 ms  (compiled)
+Module _friction_dof__locals__kernel_7e779d29 7e779d2 load on device 'cuda:0' took 136.59 ms  (compiled)
+Module _friction_tendon__locals__kernel_a45560a5 a45560a load on device 'cuda:0' took 163.02 ms  (compiled)
+Module _limit_slide_hinge__locals__kernel_4a7dd5a3 4a7dd5a load on device 'cuda:0' took 171.21 ms  (compiled)
+Module _limit_tendon__locals__kernel_e08d02bf e08d02b load on device 'cuda:0' took 190.97 ms  (compiled)
+Module _efc_contact_init__locals__kernel_de8450d9 de8450d load on device 'cuda:0' took 131.28 ms  (compiled)
+Module _efc_contact_jac_sparse__locals__kernel_5f4fcfa3 5f4fcfa load on device 'cuda:0' took 193.02 ms  (compiled)
+Module _efc_contact_update__locals__kernel_4bc19592 4bc1959 load on device 'cuda:0' took 157.50 ms  (compiled)
+Module _efc_nnz_overflow__locals__kernel_d038a7ab d038a7a load on device 'cuda:0' took 61.77 ms  (compiled)
+Module _transmission__locals__kernel_dea7390e dea7390 load on device 'cuda:0' took 413.23 ms  (compiled)
+Module mujoco_warp._src.sensor 1d54d75 load on device 'cuda:0' took 2058.15 ms  (compiled)
+Module _contact_match_builder__locals___contact_match_59c1d3f7 59c1d3f load on device 'cuda:0' took 205.93 ms  (compiled)
+Module _contact_sort__locals__contact_sort_1dbb9fb1 e520e9c load on device 'cuda:0' took 772.54 ms  (compiled)
+Module mujoco_warp._src.forward 3460a44 load on device 'cuda:0' took 3870.65 ms  (compiled)
+Module mujoco_warp._src.passive f8d2cbe load on device 'cuda:0' took 1900.91 ms  (compiled)
+Module _spring_damper_tendon_passive__locals__kernel_e3fbb01d e3fbb01 load on device 'cuda:0' took 154.95 ms  (compiled)
+Module _qfrc_passive_kernel__locals__kernel_b4e42e33 b4e42e3 load on device 'cuda:0' took 81.22 ms  (compiled)
+Module _tendon_bias_coef__locals__kernel_5a0aa533 5a0aa53 load on device 'cuda:0' took 112.51 ms  (compiled)
+Module _tendon_bias_qfrc__locals__kernel_b80384a8 b80384a load on device 'cuda:0' took 112.66 ms  (compiled)
+Module _tendon_actuator_force__locals__kernel_5af12e9b 5af12e9 load on device 'cuda:0' took 92.16 ms  (compiled)
+Module _qfrc_actuator__locals__kernel_cc8a1793 cc8a179 load on device 'cuda:0' took 146.70 ms  (compiled)
+Module _qfrc_smooth__locals__kernel_4258d405 4258d40 load on device 'cuda:0' took 77.44 ms  (compiled)
+Module _apply_ft_scatter__locals__kernel_7fdf9176 7fdf917 load on device 'cuda:0' took 108.32 ms  (compiled)
+Module _tile_cholesky_factorize_solve_block__locals__kernel_6eff0cf4 6dc3426 load on device 'cuda:0' took 4566.36 ms  (compiled)
+Module _solve_init_dof__locals__kernel_bb27588a bb27588 load on device 'cuda:0' took 76.55 ms  (compiled)
+Module mujoco_warp._src.solver 9038ac5 load on device 'cuda:0' took 488.45 ms  (compiled)
+Module _solve_init_jaref_kernel__locals__kernel_d609bf0f d609bf0 load on device 'cuda:0' took 113.66 ms  (compiled)
+Module mul_m_kernel__locals___mul_m_9ad4deba 9ad4deb load on device 'cuda:0' took 88.76 ms  (compiled)
+Module _update_constraint_efc__locals__kernel_c81c55ec c81c55e load on device 'cuda:0' took 121.44 ms  (compiled)
+Module _update_constraint_init_qfrc_constraint_sparse__locals__kernel_6aed0c06 6aed0c0 load on device 'cuda:0' took 152.64 ms  (compiled)
+Module _update_gradient_zero_grad_dot__locals__kernel_ac53feb7 ac53feb load on device 'cuda:0' took 65.97 ms  (compiled)
+Module _update_gradient_grad__locals__kernel_6b3af6f7 6b3af6f load on device 'cuda:0' took 70.80 ms  (compiled)
+Module _update_gradient_init_h_sparse__locals__kernel_2449c1fe 2449c1f load on device 'cuda:0' took 104.37 ms  (compiled)
+Module _JTDACJ_sparse__locals__kernel_eeee9e0d eeee9e0 load on device 'cuda:0' took 125.91 ms  (compiled)
+Module _update_gradient_cholesky__locals__kernel_301cabbc b408725 load on device 'cuda:0' took 3336.52 ms  (compiled)
+Module _linesearch_jv_fused_kernel__locals__kernel_ecae6320 ecae632 load on device 'cuda:0' took 97.26 ms  (compiled)
+Module _linesearch_iterative_kernel__locals__kernel_b3f62e43 bf31875 load on device 'cuda:0' took 994.46 ms  (compiled)
+Module _update_constraint_efc__locals__kernel_00702e1f 00702e1 load on device 'cuda:0' took 126.62 ms  (compiled)
+Module _update_gradient_zero_grad_dot__locals__kernel_d748dfc6 d748dfc load on device 'cuda:0' took 75.41 ms  (compiled)
+Module _update_gradient_grad__locals__kernel_1403d5a7 1403d5a load on device 'cuda:0' took 73.44 ms  (compiled)
+Module _update_gradient_h_incremental_sparse__locals__kernel_363025d8 363025d load on device 'cuda:0' took 103.19 ms  (compiled)
+Module _update_gradient_cholesky__locals__kernel_cb19598f d7426cc load on device 'cuda:0' took 1411.03 ms  (compiled)
+Module _solve_done__locals__kernel_3c8d4e70 3c8d4e7 load on device 'cuda:0' took 100.27 ms  (compiled)
+Module _cfrc_ext_contact__locals__kernel_b7525636 b752563 load on device 'cuda:0' took 158.42 ms  (compiled)
+Module _cfrc_ext_tendon_constraint__locals__kernel_0405d60f 0405d60 load on device 'cuda:0' took 110.69 ms  (compiled)
+Module _cfrc_ext_tendon_actuator__locals__kernel_880d605f 880d605 load on device 'cuda:0' took 100.27 ms  (compiled)
+Module _cfrc_ext_spatial_tendon__locals__kernel_84b9138b 84b9138 load on device 'cuda:0' took 267.02 ms  (compiled)
+Module mujoco_warp._src.derivative ec9c82d load on device 'cuda:0' took 1153.49 ms  (compiled)
+Module _qderiv_actuator_passive_actuation_sparse__locals__kernel_5819db2b 5819db2 load on device 'cuda:0' took 124.24 ms  (compiled)
+Module _next_time_builder__locals___next_time_362dd14b 362dd14 load on device 'cuda:0' took 94.27 ms  (compiled)
+Module reset_data__locals__reset_xfrc_applied_fa66aaf1 fa66aaf load on device 'cuda:0' took 66.93 ms  (compiled)
+Module reset_data__locals__reset_M_a63080fa a63080f load on device 'cuda:0' took 63.71 ms  (compiled)
+Module reset_data__locals__reset_mocap_3106e936 3106e93 load on device 'cuda:0' took 69.93 ms  (compiled)
+Module reset_data__locals__reset_contact_960ffeb8 960ffeb load on device 'cuda:0' took 98.41 ms  (compiled)
+Module reset_data__locals__reset_sleep_f1d78fb1 f1d78fb load on device 'cuda:0' took 77.65 ms  (compiled)
+Module reset_data__locals__reset_nworld_95181980 9518198 load on device 'cuda:0' took 150.86 ms  (compiled)
+
++---------------------------------+
+|         Base Environment        |
++------------------------+--------+
+| Property               | Value  |
++------------------------+--------+
+| Number of environments | 32     |
+| Environment device     | cuda:0 |
+| Environment seed       | None   |
+| Physics step-size      | 0.005  |
+| Environment step-size  | 0.02   |
++------------------------+--------+
+
+[INFO] <EventManager> contains 1 active terms.
++---------------------------------------+
+| Active Event Terms in Mode: 'startup' |
++-----------+---------------------------+
+|   Index   | Name                      |
++-----------+---------------------------+
+|     0     | base_com                  |
+|     1     | encoder_bias              |
+|     2     | foot_friction             |
++-----------+---------------------------+
++-----------------------------+
+| Domain Randomization Fields |
++-------+---------------------+
+| Index | Field Name          |
++-------+---------------------+
+|   0   | body_ipos           |
+|   1   | tendon_length0      |
+|   2   | eq_data             |
+|   3   | cam_pos0            |
+|   4   | cam_poscom0         |
+|   5   | cam_mat0            |
+|   6   | light_pos0          |
+|   7   | light_poscom0       |
+|   8   | light_dir0          |
+|   9   | dof_invweight0      |
+|   10  | body_invweight0     |
+|   11  | tendon_invweight0   |
+|   12  | actuator_acc0       |
+|   13  | geom_friction       |
++-------+---------------------+
+/mnt/d/robotic_research/corpus/papers/supermimic/repo/.venv/lib/python3.13/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+
+Module repeat_array_kernel_bf2974d2 5bebf3d load on device 'cuda:0' took 68.45 ms  (compiled)
+Module repeat_array_kernel_bf2974d2 ce66a27 load on device 'cuda:0' took 80.45 ms  (compiled)
+Module repeat_array_kernel_bf2974d2 7df1082 load on device 'cuda:0' took 92.16 ms  (compiled)
+Module repeat_array_kernel_bf2974d2 cd301b0 load on device 'cuda:0' took 109.30 ms  (compiled)
+[INFO] <CommandManager> contains 1 active terms.
++--------------------------------+
+|      Active Command Terms      |
++-------+--------+---------------+
+| Index | Name   |      Type     |
++-------+--------+---------------+
+|   0   | motion | MotionCommand |
++-------+--------+---------------+
+
+[INFO] <ActionManager> contains 1 active terms.
++---------------------------------+
+| Active Action Terms (shape: 29) |
++-------+-----------+-------------+
+| Index | Name      |   Dimension |
++-------+-----------+-------------+
+|   0   | joint_pos |          29 |
++-------+-----------+-------------+
+
+[INFO] <ObservationManager> contains 4 groups.
++-----------------------------------------------------------+
+| Active Observation Terms in Group: 'actor' (shape: (93,)) |
++-----------+----------------------------------+------------+
+|   Index   | Name                             |   Shape    |
++-----------+----------------------------------+------------+
+|     0     | projected_gravity                |    (3,)    |
+|     1     | base_ang_vel                     |    (3,)    |
+|     2     | joint_pos                        |   (29,)    |
+|     3     | joint_vel                        |   (29,)    |
+|     4     | actions                          |   (29,)    |
++-----------+----------------------------------+------------+
++-------------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (286,)) |
++-----------+------------------------------------+------------+
+|   Index   | Name                               |   Shape    |
++-----------+------------------------------------+------------+
+|     0     | command                            |   (58,)    |
+|     1     | motion_anchor_pos_b                |    (3,)    |
+|     2     | motion_anchor_ori_b                |    (6,)    |
+|     3     | body_pos                           |   (42,)    |
+|     4     | body_ori                           |   (84,)    |
+|     5     | base_lin_vel                       |    (3,)    |
+|     6     | base_ang_vel                       |    (3,)    |
+|     7     | joint_pos                          |   (29,)    |
+|     8     | joint_vel                          |   (29,)    |
+|     9     | actions                            |   (29,)    |
++-----------+------------------------------------+------------+
++----------------------------------------------------------------+
+| Active Observation Terms in Group: 'full_state' (shape: (71,)) |
++--------------+--------------------------------+----------------+
+|    Index     | Name                           |     Shape      |
++--------------+--------------------------------+----------------+
+|      0       | root_pos                       |      (3,)      |
+|      1       | root_ori                       |      (4,)      |
+|      2       | joint_pos                      |     (29,)      |
+|      3       | root_lin_vel                   |      (3,)      |
+|      4       | root_ang_vel                   |      (3,)      |
+|      5       | joint_vel                      |     (29,)      |
++--------------+--------------------------------+----------------+
++-----------------------------------------------------------+
+| Active Observation Terms in Group: 'goal' (shape: (670,)) |
++----------+----------------------------------+-------------+
+|  Index   | Name                             |    Shape    |
++----------+----------------------------------+-------------+
+|    0     | command                          |    (580,)   |
+|    1     | motion_anchor_pos_b              |    (30,)    |
+|    2     | motion_anchor_ori_b              |    (60,)    |
++----------+----------------------------------+-------------+
+
+[INFO] <TerminationManager> contains 4 active terms.
++-------------------------------+
+|    Active Termination Terms   |
++-------+------------+----------+
+| Index | Name       | Time Out |
++-------+------------+----------+
+|   0   | time_out   |   True   |
+|   1   | motion_end |   True   |
+|   2   | anchor_pos |  False   |
+|   3   | anchor_ori |  False   |
++-------+------------+----------+
+
+[INFO] <RewardManager> contains 8 active terms.
++-----------------------------------------+
+|           Active Reward Terms           |
++-------+------------------------+--------+
+| Index | Name                   | Weight |
++-------+------------------------+--------+
+|   0   | motion_global_root_pos |    0.5 |
+|   1   | motion_global_root_ori |    0.5 |
+|   2   | motion_body_pos        |    1.0 |
+|   3   | motion_body_ori        |    1.0 |
+|   4   | motion_body_lin_vel    |    1.0 |
+|   5   | motion_body_ang_vel    |    1.0 |
+|   6   | action_rate_l2         |   -0.1 |
+|   7   | joint_limit            |   -2.0 |
++-------+------------------------+--------+
+
+[INFO] <NullCurriculumManager> (inactive)
+[INFO] <NullMetricsManager> (inactive)
+[INFO] <NullRecorderManager> (inactive)
+Module mujoco_warp._src.set_const 7e4804e load on device 'cuda:0' took 597.38 ms  (compiled)
+Module _tile_cholesky_factorize_block__locals__kernel_ee8124af 55d647c load on device 'cuda:0' took 1139.44 ms  (compiled)
+Module _tile_cholesky_solve_block__locals__kernel_e27bf8d9 238074d load on device 'cuda:0' took 2663.62 ms  (compiled)
+[INFO] State Dim: 71, Goal Dim: 670
+[INFO] Sim Context: 33 dim (['foot_friction', 'base_com', 'encoder_bias'])
+[INFO] Representation: gencoord (full=71, rep=68, pred=35)
+[INFO] Sim slot ranges:
+  motion: [0, 32) — goal_dim=640
+  velocity: [32, 32) — goal_dim=3
+[INFO] Logging to logs/SuperMimic-GenCoord-G1/2026-11-21_01-20-25
+[INFO] Starting training loop for 8 iterations...
+################################################################################
+[1m                             Learning iteration 0/8                             [0m 
+
+                               Run name: paper-card-smoke
+                            Total steps: 32 
+                       Steps per second: 1 
+                        Collection time: 21.753s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+--------------------------------------------------------------------------------
+                         Iteration time: 21.75s
+                           Time elapsed: 00:00:21
+                                    ETA: 00:02:32
+
+[WARN] Checkpoint artifact log/prune failed: UsageError: No API key configured. Use `wandb login` to log in.
+################################################################################
+[1m                             Learning iteration 1/8                             [0m 
+
+                               Run name: paper-card-smoke
+                            Total steps: 64 
+                       Steps per second: 0 
+                        Collection time: 36.842s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+  Episode_Reward/motion_global_root_pos: 0.0019
+  Episode_Reward/motion_global_root_ori: 0.0019
+         Episode_Reward/motion_body_pos: 0.0038
+         Episode_Reward/motion_body_ori: 0.0031
+     Episode_Reward/motion_body_lin_vel: 0.0024
+     Episode_Reward/motion_body_ang_vel: 0.0006
+          Episode_Reward/action_rate_l2: -0.0027
+             Episode_Reward/joint_limit: 0.0000
+        Metrics/motion/error_anchor_pos: 0.0524
+        Metrics/motion/error_anchor_rot: 0.0867
+    Metrics/motion/error_anchor_lin_vel: 0.4227
+    Metrics/motion/error_anchor_ang_vel: 1.9783
+          Metrics/motion/error_body_pos: 0.0482
+          Metrics/motion/error_body_rot: 0.1910
+         Metrics/motion/error_joint_pos: 0.6776
+         Metrics/motion/error_joint_vel: 17.6794
+        Metrics/motion/sampling_entropy: 1.0000
+      Metrics/motion/sampling_top1_prob: 0.1429
+       Metrics/motion/sampling_top1_bin: 0.0000
+      Metrics/motion/error_body_lin_vel: 0.5944
+      Metrics/motion/error_body_ang_vel: 4.2131
+           Episode_Termination/time_out: 0.0000
+         Episode_Termination/motion_end: 1.0000
+         Episode_Termination/anchor_pos: 0.0000
+         Episode_Termination/anchor_ori: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 36.84s
+                           Time elapsed: 00:00:58
+                                    ETA: 00:02:55
+solver iterations limit reached - please increase iterations beyond 10
+To disable the print warning: m.opt.warn_overflow &= ~mjw.OverflowType.ITERATIONS (or = 0 for all)
+linesearch iterations limit reached - please increase ls_iterations beyond 20
+To disable the print warning: m.opt.warn_overflow &= ~mjw.OverflowType.LS_ITERATIONS (or = 0 for all)
+solver iterations limit reached - please increase iterations beyond 10
+To disable the print warning: m.opt.warn_overflow &= ~mjw.OverflowType.ITERATIONS (or = 0 for all)
+
+################################################################################
+[1m                             Learning iteration 2/8                             [0m 
+
+                               Run name: paper-card-smoke
+                            Total steps: 96 
+                       Steps per second: 174 
+                        Collection time: 0.184s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+  Episode_Reward/motion_global_root_pos: 0.0030
+  Episode_Reward/motion_global_root_ori: 0.0023
+         Episode_Reward/motion_body_pos: 0.0058
+         Episode_Reward/motion_body_ori: 0.0039
+     Episode_Reward/motion_body_lin_vel: 0.0026
+     Episode_Reward/motion_body_ang_vel: 0.0015
+          Episode_Reward/action_rate_l2: -0.0045
+             Episode_Reward/joint_limit: 0.0000
+        Metrics/motion/error_anchor_pos: 0.0288
+        Metrics/motion/error_anchor_rot: 0.2046
+    Metrics/motion/error_anchor_lin_vel: 0.7370
+    Metrics/motion/error_anchor_ang_vel: 2.5285
+          Metrics/motion/error_body_pos: 0.0449
+          Metrics/motion/error_body_rot: 0.2249
+         Metrics/motion/error_joint_pos: 0.8849
+         Metrics/motion/error_joint_vel: 18.0195
+        Metrics/motion/sampling_entropy: 1.0000
+      Metrics/motion/sampling_top1_prob: 0.1429
+       Metrics/motion/sampling_top1_bin: 0.0000
+      Metrics/motion/error_body_lin_vel: 0.8903
+      Metrics/motion/error_body_ang_vel: 3.5637
+           Episode_Termination/time_out: 0.0000
+         Episode_Termination/motion_end: 1.0000
+         Episode_Termination/anchor_pos: 0.0000
+         Episode_Termination/anchor_ori: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 0.18s
+                           Time elapsed: 00:00:58
+                                    ETA: 00:01:37
+
+################################################################################
+[1m                             Learning iteration 3/8                             [0m 
+
+                               Run name: paper-card-smoke
+                            Total steps: 128 
+                       Steps per second: 1882 
+                        Collection time: 0.017s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+--------------------------------------------------------------------------------
+                         Iteration time: 0.02s
+                           Time elapsed: 00:00:58
+                                    ETA: 00:00:58
+
+################################################################################
+[1m                             Learning iteration 4/8                             [0m 
+
+                               Run name: paper-card-smoke
+                            Total steps: 160 
+                       Steps per second: 694 
+                        Collection time: 0.046s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+  Episode_Reward/motion_global_root_pos: 0.0049
+  Episode_Reward/motion_global_root_ori: 0.0038
+         Episode_Reward/motion_body_pos: 0.0096
+         Episode_Reward/motion_body_ori: 0.0054
+     Episode_Reward/motion_body_lin_vel: 0.0055
+     Episode_Reward/motion_body_ang_vel: 0.0016
+          Episode_Reward/action_rate_l2: -0.0047
+             Episode_Reward/joint_limit: 0.0000
+        Metrics/motion/error_anchor_pos: 0.0347
+        Metrics/motion/error_anchor_rot: 0.2408
+    Metrics/motion/error_anchor_lin_vel: 0.5706
+    Metrics/motion/error_anchor_ang_vel: 2.3616
+          Metrics/motion/error_body_pos: 0.0572
+          Metrics/motion/error_body_rot: 0.3611
+         Metrics/motion/error_joint_pos: 1.2470
+         Metrics/motion/error_joint_vel: 10.5478
+        Metrics/motion/sampling_entropy: 1.0000
+      Metrics/motion/sampling_top1_prob: 0.1429
+       Metrics/motion/sampling_top1_bin: 0.0000
+      Metrics/motion/error_body_lin_vel: 0.8399
+      Metrics/motion/error_body_ang_vel: 3.8937
+           Episode_Termination/time_out: 0.0000
+         Episode_Termination/motion_end: 1.0000
+         Episode_Termination/anchor_pos: 0.0000
+         Episode_Termination/anchor_ori: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 0.05s
+                           Time elapsed: 00:00:58
+                                    ETA: 00:00:35
+
+################################################################################
+[1m                             Learning iteration 5/8                             [0m 
+
+                               Run name: paper-card-smoke
+                            Total steps: 192 
+                       Steps per second: 9 
+                        Collection time: 3.243s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+  Episode_Reward/motion_global_root_pos: 0.0059
+  Episode_Reward/motion_global_root_ori: 0.0052
+         Episode_Reward/motion_body_pos: 0.0111
+         Episode_Reward/motion_body_ori: 0.0056
+     Episode_Reward/motion_body_lin_vel: 0.0065
+     Episode_Reward/motion_body_ang_vel: 0.0021
+          Episode_Reward/action_rate_l2: -0.0048
+             Episode_Reward/joint_limit: 0.0000
+        Metrics/motion/error_anchor_pos: 0.0421
+        Metrics/motion/error_anchor_rot: 0.1556
+    Metrics/motion/error_anchor_lin_vel: 0.6766
+    Metrics/motion/error_anchor_ang_vel: 2.5118
+          Metrics/motion/error_body_pos: 0.0788
+          Metrics/motion/error_body_rot: 0.4204
+         Metrics/motion/error_joint_pos: 1.4385
+         Metrics/motion/error_joint_vel: 11.7890
+        Metrics/motion/sampling_entropy: 1.0000
+      Metrics/motion/sampling_top1_prob: 0.1429
+       Metrics/motion/sampling_top1_bin: 0.0000
+      Metrics/motion/error_body_lin_vel: 0.8410
+      Metrics/motion/error_body_ang_vel: 4.1129
+           Episode_Termination/time_out: 0.0000
+         Episode_Termination/motion_end: 2.0000
+         Episode_Termination/anchor_pos: 0.0000
+         Episode_Termination/anchor_ori: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 3.24s
+                           Time elapsed: 00:01:02
+                                    ETA: 00:00:20
+
+################################################################################
+[1m                             Learning iteration 6/8                             [0m 
+
+                               Run name: paper-card-smoke
+                            Total steps: 224 
+                       Steps per second: 1435 
+                        Collection time: 0.022s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+--------------------------------------------------------------------------------
+                         Iteration time: 0.02s
+                           Time elapsed: 00:01:02
+                                    ETA: 00:00:08
+
+################################################################################
+[1m                             Learning iteration 7/8                             [0m 
+
+                               Run name: paper-card-smoke
+                            Total steps: 256 
+                       Steps per second: 1327 
+                        Collection time: 0.024s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+  Episode_Reward/motion_global_root_pos: 0.0079
+  Episode_Reward/motion_global_root_ori: 0.0064
+         Episode_Reward/motion_body_pos: 0.0150
+         Episode_Reward/motion_body_ori: 0.0096
+     Episode_Reward/motion_body_lin_vel: 0.0078
+     Episode_Reward/motion_body_ang_vel: 0.0031
+          Episode_Reward/action_rate_l2: -0.0054
+             Episode_Reward/joint_limit: 0.0000
+        Metrics/motion/error_anchor_pos: 0.0601
+        Metrics/motion/error_anchor_rot: 0.2342
+    Metrics/motion/error_anchor_lin_vel: 0.6101
+    Metrics/motion/error_anchor_ang_vel: 1.8721
+          Metrics/motion/error_body_pos: 0.0946
+          Metrics/motion/error_body_rot: 0.3775
+         Metrics/motion/error_joint_pos: 1.5633
+         Metrics/motion/error_joint_vel: 10.5077
+        Metrics/motion/sampling_entropy: 1.0000
+      Metrics/motion/sampling_top1_prob: 0.1429
+       Metrics/motion/sampling_top1_bin: 0.0000
+      Metrics/motion/error_body_lin_vel: 0.7926
+      Metrics/motion/error_body_ang_vel: 3.7360
+           Episode_Termination/time_out: 0.0000
+         Episode_Termination/motion_end: 1.0000
+         Episode_Termination/anchor_pos: 0.0000
+         Episode_Termination/anchor_ori: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 0.02s
+                           Time elapsed: 00:01:02
+                                    ETA: 00:00:00
+
+exit_code: 0
+
+command: WANDB_MODE=offline MUJOCO_GL=egl uv run src/supermimic/scripts/train.py SuperMimic-GenCoord-G1 --motion-file /mnt/d/robotic_research/corpus/papers/supermimic/extracts/g1_random_clip.npz --num-envs 32 --runner.max_iterations 8 --runner.log_interval 1 --runner.wm.num_batches 1 --runner.wm.batch_size 32 --runner.policy.batch_size 32 --runner.run_name paper-card-loss --device cuda:0
+device: cuda:0 NVIDIA GeForce RTX 5070 Ti
+note: Horizons stay 8 and 32. World-model and policy batch sizes are 32, and the world-model num_batches is 1, so the replay ratio requests an update after the buffer holds 8 frames. num_envs is 32. The motion is the same 64-frame random G1 clip.
+/mnt/d/robotic_research/corpus/papers/supermimic/repo/.venv/lib/python3.13/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[INFO] Loading environment: SuperMimic-GenCoord-G1
+[INFO] Using local motion file: /mnt/d/robotic_research/corpus/papers/supermimic/extracts/g1_random_clip.npz
+Warp 1.19.0 initialized:
+   CUDA Toolkit 13.4, Driver 13.3
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA GeForce RTX 5070 Ti" (16 GiB, sm_120, mempool enabled)
+   Kernel cache:
+     /root/.cache/warp/1.19.0
+Module mujoco_warp._src.smooth 368b5b3 load on device 'cuda:0' took 1.49 ms  (cached)
+Module _joint_tendon__locals__kernel_a3fb0007 a3fb000 load on device 'cuda:0' took 0.87 ms  (cached)
+Module _tendon_armature__locals__kernel_6be7c6c8 6be7c6c load on device 'cuda:0' took 0.54 ms  (cached)
+Module _nxn_broadphase__locals__kernel_9b43d028 9b43d02 load on device 'cuda:0' took 0.63 ms  (cached)
+Module _nxn_broadphase__locals__kernel_9b43d028 8a73436 load on device 'cuda:0' took 0.80 ms  (cached)
+Module _primitive_narrowphase__locals__primitive_narrowphase_51608116 5160811 load on device 'cuda:0' took 1.16 ms  (cached)
+Module mujoco_warp._src.constraint 9feb269 load on device 'cuda:0' took 0.84 ms  (cached)
+Module _friction_dof__locals__kernel_7e779d29 7e779d2 load on device 'cuda:0' took 1.01 ms  (cached)
+Module _friction_tendon__locals__kernel_a45560a5 a45560a load on device 'cuda:0' took 0.94 ms  (cached)
+Module _limit_slide_hinge__locals__kernel_4a7dd5a3 4a7dd5a load on device 'cuda:0' took 0.87 ms  (cached)
+Module _limit_tendon__locals__kernel_e08d02bf e08d02b load on device 'cuda:0' took 0.80 ms  (cached)
+Module _efc_contact_init__locals__kernel_de8450d9 de8450d load on device 'cuda:0' took 0.87 ms  (cached)
+Module _efc_contact_jac_sparse__locals__kernel_5f4fcfa3 5f4fcfa load on device 'cuda:0' took 0.87 ms  (cached)
+Module _efc_contact_update__locals__kernel_4bc19592 4bc1959 load on device 'cuda:0' took 0.83 ms  (cached)
+Module _efc_nnz_overflow__locals__kernel_d038a7ab d038a7a load on device 'cuda:0' took 0.87 ms  (cached)
+Module _transmission__locals__kernel_dea7390e dea7390 load on device 'cuda:0' took 0.94 ms  (cached)
+Module mujoco_warp._src.sensor 1d54d75 load on device 'cuda:0' took 1.63 ms  (cached)
+Module _contact_match_builder__locals___contact_match_59c1d3f7 59c1d3f load on device 'cuda:0' took 0.88 ms  (cached)
+Module _contact_sort__locals__contact_sort_1dbb9fb1 e520e9c load on device 'cuda:0' took 0.80 ms  (cached)
+Module mujoco_warp._src.forward 3460a44 load on device 'cuda:0' took 3.27 ms  (cached)
+Module mujoco_warp._src.passive f8d2cbe load on device 'cuda:0' took 0.71 ms  (cached)
+Module _spring_damper_tendon_passive__locals__kernel_e3fbb01d e3fbb01 load on device 'cuda:0' took 0.63 ms  (cached)
+Module _qfrc_passive_kernel__locals__kernel_b4e42e33 b4e42e3 load on device 'cuda:0' took 0.86 ms  (cached)
+Module _tendon_bias_coef__locals__kernel_5a0aa533 5a0aa53 load on device 'cuda:0' took 0.94 ms  (cached)
+Module _tendon_bias_qfrc__locals__kernel_b80384a8 b80384a load on device 'cuda:0' took 0.80 ms  (cached)
+Module _tendon_actuator_force__locals__kernel_5af12e9b 5af12e9 load on device 'cuda:0' took 0.62 ms  (cached)
+Module _qfrc_actuator__locals__kernel_cc8a1793 cc8a179 load on device 'cuda:0' took 0.86 ms  (cached)
+Module _qfrc_smooth__locals__kernel_4258d405 4258d40 load on device 'cuda:0' took 0.66 ms  (cached)
+Module _apply_ft_scatter__locals__kernel_7fdf9176 7fdf917 load on device 'cuda:0' took 0.63 ms  (cached)
+Module _tile_cholesky_factorize_solve_block__locals__kernel_6eff0cf4 6dc3426 load on device 'cuda:0' took 110.39 ms  (cached)
+Module _solve_init_dof__locals__kernel_bb27588a bb27588 load on device 'cuda:0' took 0.94 ms  (cached)
+Module mujoco_warp._src.solver 9038ac5 load on device 'cuda:0' took 0.98 ms  (cached)
+Module _solve_init_jaref_kernel__locals__kernel_d609bf0f d609bf0 load on device 'cuda:0' took 0.59 ms  (cached)
+Module mul_m_kernel__locals___mul_m_9ad4deba 9ad4deb load on device 'cuda:0' took 0.49 ms  (cached)
+Module _update_constraint_efc__locals__kernel_c81c55ec c81c55e load on device 'cuda:0' took 0.53 ms  (cached)
+Module _update_constraint_init_qfrc_constraint_sparse__locals__kernel_6aed0c06 6aed0c0 load on device 'cuda:0' took 0.57 ms  (cached)
+Module _update_gradient_zero_grad_dot__locals__kernel_ac53feb7 ac53feb load on device 'cuda:0' took 0.54 ms  (cached)
+Module _update_gradient_grad__locals__kernel_6b3af6f7 6b3af6f load on device 'cuda:0' took 0.50 ms  (cached)
+Module _update_gradient_init_h_sparse__locals__kernel_2449c1fe 2449c1f load on device 'cuda:0' took 0.84 ms  (cached)
+Module _JTDACJ_sparse__locals__kernel_eeee9e0d eeee9e0 load on device 'cuda:0' took 0.86 ms  (cached)
+Module _update_gradient_cholesky__locals__kernel_301cabbc b408725 load on device 'cuda:0' took 113.88 ms  (cached)
+Module _linesearch_jv_fused_kernel__locals__kernel_ecae6320 ecae632 load on device 'cuda:0' took 0.69 ms  (cached)
+Module _linesearch_iterative_kernel__locals__kernel_b3f62e43 bf31875 load on device 'cuda:0' took 1.14 ms  (cached)
+Module _update_constraint_efc__locals__kernel_00702e1f 00702e1 load on device 'cuda:0' took 0.87 ms  (cached)
+Module _update_gradient_zero_grad_dot__locals__kernel_d748dfc6 d748dfc load on device 'cuda:0' took 0.86 ms  (cached)
+Module _update_gradient_grad__locals__kernel_1403d5a7 1403d5a load on device 'cuda:0' took 0.81 ms  (cached)
+Module _update_gradient_h_incremental_sparse__locals__kernel_363025d8 363025d load on device 'cuda:0' took 0.78 ms  (cached)
+Module _update_gradient_cholesky__locals__kernel_cb19598f d7426cc load on device 'cuda:0' took 117.58 ms  (cached)
+Module _solve_done__locals__kernel_3c8d4e70 3c8d4e7 load on device 'cuda:0' took 1.07 ms  (cached)
+Module _cfrc_ext_contact__locals__kernel_b7525636 b752563 load on device 'cuda:0' took 0.90 ms  (cached)
+Module _cfrc_ext_tendon_constraint__locals__kernel_0405d60f 0405d60 load on device 'cuda:0' took 1.10 ms  (cached)
+Module _cfrc_ext_tendon_actuator__locals__kernel_880d605f 880d605 load on device 'cuda:0' took 0.85 ms  (cached)
+Module _cfrc_ext_spatial_tendon__locals__kernel_84b9138b 84b9138 load on device 'cuda:0' took 0.99 ms  (cached)
+Module mujoco_warp._src.derivative ec9c82d load on device 'cuda:0' took 1.11 ms  (cached)
+Module _qderiv_actuator_passive_actuation_sparse__locals__kernel_5819db2b 5819db2 load on device 'cuda:0' took 0.89 ms  (cached)
+Module _next_time_builder__locals___next_time_362dd14b 362dd14 load on device 'cuda:0' took 0.86 ms  (cached)
+Module reset_data__locals__reset_xfrc_applied_fa66aaf1 fa66aaf load on device 'cuda:0' took 0.70 ms  (cached)
+Module reset_data__locals__reset_M_a63080fa a63080f load on device 'cuda:0' took 0.63 ms  (cached)
+Module reset_data__locals__reset_mocap_3106e936 3106e93 load on device 'cuda:0' took 0.52 ms  (cached)
+Module reset_data__locals__reset_contact_960ffeb8 960ffeb load on device 'cuda:0' took 0.52 ms  (cached)
+Module reset_data__locals__reset_sleep_f1d78fb1 f1d78fb load on device 'cuda:0' took 0.52 ms  (cached)
+Module reset_data__locals__reset_nworld_95181980 9518198 load on device 'cuda:0' took 0.62 ms  (cached)
+
++---------------------------------+
+|         Base Environment        |
++------------------------+--------+
+| Property               | Value  |
++------------------------+--------+
+| Number of environments | 32     |
+| Environment device     | cuda:0 |
+| Environment seed       | None   |
+| Physics step-size      | 0.005  |
+| Environment step-size  | 0.02   |
++------------------------+--------+
+
+[INFO] <EventManager> contains 1 active terms.
++---------------------------------------+
+| Active Event Terms in Mode: 'startup' |
++-----------+---------------------------+
+|   Index   | Name                      |
++-----------+---------------------------+
+|     0     | base_com                  |
+|     1     | encoder_bias              |
+|     2     | foot_friction             |
++-----------+---------------------------+
++-----------------------------+
+| Domain Randomization Fields |
++-------+---------------------+
+| Index | Field Name          |
++-------+---------------------+
+|   0   | body_ipos           |
+|   1   | tendon_length0      |
+|   2   | eq_data             |
+|   3   | cam_pos0            |
+|   4   | cam_poscom0         |
+|   5   | cam_mat0            |
+|   6   | light_pos0          |
+|   7   | light_poscom0       |
+|   8   | light_dir0          |
+|   9   | dof_invweight0      |
+|   10  | body_invweight0     |
+|   11  | tendon_invweight0   |
+|   12  | actuator_acc0       |
+|   13  | geom_friction       |
++-------+---------------------+
+/mnt/d/robotic_research/corpus/papers/supermimic/repo/.venv/lib/python3.13/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+linesearch iterations limit reached - please increase ls_iterations beyond 20
+To disable the print warning: m.opt.warn_overflow &= ~mjw.OverflowType.LS_ITERATIONS (or = 0 for all)
+
+Module repeat_array_kernel_bf2974d2 5bebf3d load on device 'cuda:0' took 0.71 ms  (cached)
+Module repeat_array_kernel_bf2974d2 ce66a27 load on device 'cuda:0' took 0.94 ms  (cached)
+Module repeat_array_kernel_bf2974d2 7df1082 load on device 'cuda:0' took 0.68 ms  (cached)
+Module repeat_array_kernel_bf2974d2 cd301b0 load on device 'cuda:0' took 0.62 ms  (cached)
+[INFO] <CommandManager> contains 1 active terms.
++--------------------------------+
+|      Active Command Terms      |
++-------+--------+---------------+
+| Index | Name   |      Type     |
++-------+--------+---------------+
+|   0   | motion | MotionCommand |
++-------+--------+---------------+
+
+[INFO] <ActionManager> contains 1 active terms.
++---------------------------------+
+| Active Action Terms (shape: 29) |
++-------+-----------+-------------+
+| Index | Name      |   Dimension |
++-------+-----------+-------------+
+|   0   | joint_pos |          29 |
++-------+-----------+-------------+
+
+[INFO] <ObservationManager> contains 4 groups.
++-----------------------------------------------------------+
+| Active Observation Terms in Group: 'actor' (shape: (93,)) |
++-----------+----------------------------------+------------+
+|   Index   | Name                             |   Shape    |
++-----------+----------------------------------+------------+
+|     0     | projected_gravity                |    (3,)    |
+|     1     | base_ang_vel                     |    (3,)    |
+|     2     | joint_pos                        |   (29,)    |
+|     3     | joint_vel                        |   (29,)    |
+|     4     | actions                          |   (29,)    |
++-----------+----------------------------------+------------+
++-------------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (286,)) |
++-----------+------------------------------------+------------+
+|   Index   | Name                               |   Shape    |
++-----------+------------------------------------+------------+
+|     0     | command                            |   (58,)    |
+|     1     | motion_anchor_pos_b                |    (3,)    |
+|     2     | motion_anchor_ori_b                |    (6,)    |
+|     3     | body_pos                           |   (42,)    |
+|     4     | body_ori                           |   (84,)    |
+|     5     | base_lin_vel                       |    (3,)    |
+|     6     | base_ang_vel                       |    (3,)    |
+|     7     | joint_pos                          |   (29,)    |
+|     8     | joint_vel                          |   (29,)    |
+|     9     | actions                            |   (29,)    |
++-----------+------------------------------------+------------+
++----------------------------------------------------------------+
+| Active Observation Terms in Group: 'full_state' (shape: (71,)) |
++--------------+--------------------------------+----------------+
+|    Index     | Name                           |     Shape      |
++--------------+--------------------------------+----------------+
+|      0       | root_pos                       |      (3,)      |
+|      1       | root_ori                       |      (4,)      |
+|      2       | joint_pos                      |     (29,)      |
+|      3       | root_lin_vel                   |      (3,)      |
+|      4       | root_ang_vel                   |      (3,)      |
+|      5       | joint_vel                      |     (29,)      |
++--------------+--------------------------------+----------------+
++-----------------------------------------------------------+
+| Active Observation Terms in Group: 'goal' (shape: (670,)) |
++----------+----------------------------------+-------------+
+|  Index   | Name                             |    Shape    |
++----------+----------------------------------+-------------+
+|    0     | command                          |    (580,)   |
+|    1     | motion_anchor_pos_b              |    (30,)    |
+|    2     | motion_anchor_ori_b              |    (60,)    |
++----------+----------------------------------+-------------+
+
+[INFO] <TerminationManager> contains 4 active terms.
++-------------------------------+
+|    Active Termination Terms   |
++-------+------------+----------+
+| Index | Name       | Time Out |
++-------+------------+----------+
+|   0   | time_out   |   True   |
+|   1   | motion_end |   True   |
+|   2   | anchor_pos |  False   |
+|   3   | anchor_ori |  False   |
++-------+------------+----------+
+
+[INFO] <RewardManager> contains 8 active terms.
++-----------------------------------------+
+|           Active Reward Terms           |
++-------+------------------------+--------+
+| Index | Name                   | Weight |
++-------+------------------------+--------+
+|   0   | motion_global_root_pos |    0.5 |
+|   1   | motion_global_root_ori |    0.5 |
+|   2   | motion_body_pos        |    1.0 |
+|   3   | motion_body_ori        |    1.0 |
+|   4   | motion_body_lin_vel    |    1.0 |
+|   5   | motion_body_ang_vel    |    1.0 |
+|   6   | action_rate_l2         |   -0.1 |
+|   7   | joint_limit            |   -2.0 |
++-------+------------------------+--------+
+
+[INFO] <NullCurriculumManager> (inactive)
+[INFO] <NullMetricsManager> (inactive)
+[INFO] <NullRecorderManager> (inactive)
+Module mujoco_warp._src.set_const 7e4804e load on device 'cuda:0' took 1.01 ms  (cached)
+Module _tile_cholesky_factorize_block__locals__kernel_ee8124af 55d647c load on device 'cuda:0' took 40.61 ms  (cached)
+Module _tile_cholesky_solve_block__locals__kernel_e27bf8d9 238074d load on device 'cuda:0' took 40.71 ms  (cached)
+[INFO] State Dim: 71, Goal Dim: 670
+[INFO] Sim Context: 33 dim (['foot_friction', 'base_com', 'encoder_bias'])
+[INFO] Representation: gencoord (full=71, rep=68, pred=35)
+[INFO] Sim slot ranges:
+  motion: [0, 32) — goal_dim=640
+  velocity: [32, 32) — goal_dim=3
+[INFO] Logging to logs/SuperMimic-GenCoord-G1/2026-11-21_01-24-36
+[INFO] Starting training loop for 8 iterations...
+################################################################################
+[1m                             Learning iteration 0/8                             [0m 
+
+                               Run name: paper-card-loss
+                            Total steps: 32 
+                       Steps per second: 8 
+                        Collection time: 3.695s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+--------------------------------------------------------------------------------
+                         Iteration time: 3.70s
+                           Time elapsed: 00:00:03
+                                    ETA: 00:00:25
+
+################################################################################
+[1m                             Learning iteration 1/8                             [0m 
+
+                               Run name: paper-card-loss
+                            Total steps: 64 
+                       Steps per second: 47 
+                        Collection time: 0.670s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+--------------------------------------------------------------------------------
+                         Iteration time: 0.67s
+                           Time elapsed: 00:00:04
+                                    ETA: 00:00:13
+
+################################################################################
+[1m                             Learning iteration 2/8                             [0m 
+
+                               Run name: paper-card-loss
+                            Total steps: 96 
+                       Steps per second: 1945 
+                        Collection time: 0.016s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+--------------------------------------------------------------------------------
+                         Iteration time: 0.02s
+                           Time elapsed: 00:00:04
+                                    ETA: 00:00:07
+
+################################################################################
+[1m                             Learning iteration 3/8                             [0m 
+
+                               Run name: paper-card-loss
+                            Total steps: 128 
+                       Steps per second: 1868 
+                        Collection time: 0.017s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+--------------------------------------------------------------------------------
+                         Iteration time: 0.02s
+                           Time elapsed: 00:00:04
+                                    ETA: 00:00:04
+solver iterations limit reached - please increase iterations beyond 10
+To disable the print warning: m.opt.warn_overflow &= ~mjw.OverflowType.ITERATIONS (or = 0 for all)
+
+[WARN] Checkpoint artifact log/prune failed: UsageError: No API key configured. Use `wandb login` to log in.
+################################################################################
+[1m                             Learning iteration 4/8                             [0m 
+
+                               Run name: paper-card-loss
+                            Total steps: 160 
+                       Steps per second: 9 
+                        Collection time: 3.208s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+  Episode_Reward/motion_global_root_pos: 0.0049
+  Episode_Reward/motion_global_root_ori: 0.0048
+         Episode_Reward/motion_body_pos: 0.0096
+         Episode_Reward/motion_body_ori: 0.0063
+     Episode_Reward/motion_body_lin_vel: 0.0053
+     Episode_Reward/motion_body_ang_vel: 0.0027
+          Episode_Reward/action_rate_l2: -0.0032
+             Episode_Reward/joint_limit: 0.0000
+        Metrics/motion/error_anchor_pos: 0.0407
+        Metrics/motion/error_anchor_rot: 0.0734
+    Metrics/motion/error_anchor_lin_vel: 0.6782
+    Metrics/motion/error_anchor_ang_vel: 0.5361
+          Metrics/motion/error_body_pos: 0.0610
+          Metrics/motion/error_body_rot: 0.3154
+         Metrics/motion/error_joint_pos: 1.2298
+         Metrics/motion/error_joint_vel: 11.1469
+        Metrics/motion/sampling_entropy: 1.0000
+      Metrics/motion/sampling_top1_prob: 0.1429
+       Metrics/motion/sampling_top1_bin: 0.0000
+      Metrics/motion/error_body_lin_vel: 0.7827
+      Metrics/motion/error_body_ang_vel: 3.2534
+           Episode_Termination/time_out: 0.0000
+         Episode_Termination/motion_end: 2.0000
+         Episode_Termination/anchor_pos: 0.0000
+         Episode_Termination/anchor_ori: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 3.21s
+                           Time elapsed: 00:00:07
+                                    ETA: 00:00:04
+
+################################################################################
+[1m                             Learning iteration 5/8                             [0m 
+
+                               Run name: paper-card-loss
+                            Total steps: 192 
+                       Steps per second: 8 
+                        Collection time: 3.597s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+  Episode_Reward/motion_global_root_pos: 0.0057
+  Episode_Reward/motion_global_root_ori: 0.0038
+         Episode_Reward/motion_body_pos: 0.0116
+         Episode_Reward/motion_body_ori: 0.0073
+     Episode_Reward/motion_body_lin_vel: 0.0054
+     Episode_Reward/motion_body_ang_vel: 0.0021
+          Episode_Reward/action_rate_l2: -0.0041
+             Episode_Reward/joint_limit: 0.0000
+        Metrics/motion/error_anchor_pos: 0.0947
+        Metrics/motion/error_anchor_rot: 0.3095
+    Metrics/motion/error_anchor_lin_vel: 0.9847
+    Metrics/motion/error_anchor_ang_vel: 1.0365
+          Metrics/motion/error_body_pos: 0.0659
+          Metrics/motion/error_body_rot: 0.3530
+         Metrics/motion/error_joint_pos: 1.3320
+         Metrics/motion/error_joint_vel: 11.5343
+        Metrics/motion/sampling_entropy: 1.0000
+      Metrics/motion/sampling_top1_prob: 0.1429
+       Metrics/motion/sampling_top1_bin: 0.0000
+      Metrics/motion/error_body_lin_vel: 0.9598
+      Metrics/motion/error_body_ang_vel: 4.3898
+           Episode_Termination/time_out: 0.0000
+         Episode_Termination/motion_end: 1.0000
+         Episode_Termination/anchor_pos: 0.0000
+         Episode_Termination/anchor_ori: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 3.60s
+                           Time elapsed: 00:00:11
+                                    ETA: 00:00:03
+
+################################################################################
+[1m                             Learning iteration 6/8                             [0m 
+
+                               Run name: paper-card-loss
+                            Total steps: 224 
+                       Steps per second: 177 
+                        Collection time: 0.180s 
+                       WM Learning time: 0.000s 
+                   Policy Learning time: 0.000s 
+  Episode_Reward/motion_global_root_pos: 0.0020
+  Episode_Reward/motion_global_root_ori: 0.0017
+         Episode_Reward/motion_body_pos: 0.0039
+         Episode_Reward/motion_body_ori: 0.0033
+     Episode_Reward/motion_body_lin_vel: 0.0027
+     Episode_Reward/motion_body_ang_vel: 0.0011
+          Episode_Reward/action_rate_l2: -0.0013
+             Episode_Reward/joint_limit: 0.0000
+        Metrics/motion/error_anchor_pos: 0.0166
+        Metrics/motion/error_anchor_rot: 0.1459
+    Metrics/motion/error_anchor_lin_vel: 0.2971
+    Metrics/motion/error_anchor_ang_vel: 1.3790
+          Metrics/motion/error_body_pos: 0.0316
+          Metrics/motion/error_body_rot: 0.1543
+         Metrics/motion/error_joint_pos: 0.6814
+         Metrics/motion/error_joint_vel: 17.2598
+        Metrics/motion/sampling_entropy: 1.0000
+      Metrics/motion/sampling_top1_prob: 0.1429
+       Metrics/motion/sampling_top1_bin: 0.0000
+      Metrics/motion/error_body_lin_vel: 0.5526
+      Metrics/motion/error_body_ang_vel: 3.2126
+           Episode_Termination/time_out: 0.0000
+         Episode_Termination/motion_end: 1.0000
+         Episode_Termination/anchor_pos: 0.0000
+         Episode_Termination/anchor_ori: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 0.18s
+                           Time elapsed: 00:00:11
+                                    ETA: 00:00:01
+
+################################################################################
+[1m                             Learning iteration 7/8                             [0m 
+
+                               Run name: paper-card-loss
+                            Total steps: 256 
+                       Steps per second: 0 
+                        Collection time: 0.025s 
+                       WM Learning time: 32.032s 
+                   Policy Learning time: 151.382s 
+                             Loss/state: 3.1136
+                          Loss/root_pos: 0.0013
+                          Loss/root_ori: 0.0020
+                         Loss/joint_pos: 0.0383
+                         Loss/joint_vel: 7.0647
+                          Policy/reward: -0.3996
+                       Policy/grad_norm: 53.7154
+                  Policy/value_function: 0.3386
+                         Policy/bc_loss: 0.0000
+--------------------------------------------------------------------------------
+                         Iteration time: 183.44s
+                           Time elapsed: 00:03:14
+                                    ETA: 00:00:00
+
+exit_code: 0
+
+command: count numel in logs/SuperMimic-GenCoord-G1/2026-11-21_01-20-25/{world_model,actor,critic}.pt
+dynamics 8745346
+sim_context 66
+actor 9839797
+critic 231425
+total 18816634
+dynamics.mlp.0.weight (2048, 130)
+dynamics.mlp.9.weight (35, 2048)
+decoder.12.weight (29, 256)
+encoders.motion.0.weight (2048, 640)
+exit_code: 0

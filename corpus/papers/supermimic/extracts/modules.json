@@ -1,0 +1,95 @@
+[
+  {
+    "name": "Dynamics",
+    "path": "src/supermimic/models.py",
+    "line": 46,
+    "bases": [
+      "nn.Module"
+    ],
+    "assigns": [
+      "    self.num_rep_state = representation.rep_state_dim",
+      "    self.num_actions = num_actions",
+      "    self.dt = representation.dt",
+      "    self._apply_prediction = representation.apply_prediction",
+      "    self.state_normalizer = _CudaGraphNormalization(self.num_rep_state)",
+      "    self.action_normalizer = _CudaGraphNormalization(num_actions)",
+      "    self.mlp = build_mlp(self.num_rep_state + num_actions + sim_ctx_dim, hidden_dims, output_dim=representation.prediction_dim)"
+    ]
+  },
+  {
+    "name": "MultiEncoderAE",
+    "path": "src/supermimic/models.py",
+    "line": 104,
+    "bases": [
+      "nn.Module"
+    ],
+    "assigns": [
+      "    self.obs_dim = obs_dim",
+      "    self.history_length = history_length",
+      "    self.latent_dim = latent_dim",
+      "    self.latent_bc_weight = latent_bc_weight",
+      "    self.task_specs = task_specs",
+      "    self._task_names = [ts.name for ts in task_specs]",
+      "    self._anchor = self._task_names[0]",
+      "    self._aux_loss = torch.zeros(0)",
+      "    self.obs_normalizer = _CudaGraphNormalization(obs_dim)",
+      "    self.goal_normalizers = nn.ModuleDict({ts.name: _CudaGraphNormalization(ts.goal_dim) for ts in task_specs})",
+      "    self.encoders = nn.ModuleDict({ts.name: build_mlp(ts.goal_dim, hidden_dims, output_dim=latent_dim) for ts in task_specs})",
+      "    self.decoder = build_mlp(latent_dim + history_length * obs_dim, hidden_dims, output_dim=action_dim)"
+    ]
+  },
+  {
+    "name": "StateRepresentation",
+    "path": "src/supermimic/representations.py",
+    "line": 240,
+    "bases": [
+      "nn.Module",
+      "ABC"
+    ],
+    "assigns": []
+  },
+  {
+    "name": "_SingleEncoderOnnx",
+    "path": "src/supermimic/runners/exporter.py",
+    "line": 72,
+    "bases": [
+      "nn.Module"
+    ],
+    "assigns": [
+      "    self.obs_normalizer = actor.obs_normalizer",
+      "    self.goal_normalizer = actor.goal_normalizers[task_name]",
+      "    self.encoder = actor.encoders[task_name]",
+      "    self.decoder = actor.decoder",
+      "    self.history_length = actor.history_length",
+      "    self.hist_size = actor.history_length * actor.obs_dim",
+      "    self.term_widths = term_widths",
+      "    self.goal_dim = next((ts for ts in actor.task_specs if ts.name == task_name)).goal_dim",
+      "    self.input_size = self.hist_size + self.goal_dim"
+    ]
+  },
+  {
+    "name": "_MotionDeployWrapper",
+    "path": "src/supermimic/runners/exporter.py",
+    "line": 121,
+    "bases": [
+      "nn.Module"
+    ],
+    "assigns": [
+      "    self.actor = _SingleEncoderOnnx(actor, task_name, term_widths)",
+      "    self._has_command = command_table is not None",
+      "    self.obs_input_size = self.actor.hist_size if self._has_command else self.actor.input_size",
+      "    self._time_step_total = int(self._joint_pos.shape[0])"
+    ]
+  },
+  {
+    "name": "SimContext",
+    "path": "src/supermimic/sim_context.py",
+    "line": 156,
+    "bases": [
+      "nn.Module"
+    ],
+    "assigns": [
+      "    self.specs = list(specs)"
+    ]
+  }
+]

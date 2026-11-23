@@ -1,0 +1,10 @@
+command: WANDB_MODE=offline MUJOCO_GL=egl uv run python /mnt/d/robotic_research/corpus/papers/supermimic/extracts/capture_example.py
+working_directory: /mnt/d/robotic_research/corpus/papers/supermimic/repo
+device: cuda:0 NVIDIA GeForce RTX 5070 Ti
+checkpoint: repo/logs/SuperMimic-GenCoord-G1/2026-11-21_01-24-36/actor.pt
+runner_cfg: repo/logs/SuperMimic-GenCoord-G1/2026-11-22_15-43-40/runner_cfg.json
+motion: extracts/g1_random_clip.npz
+env: SuperMimic-GenCoord-G1, 1 env, auto_reset false, step 0.02 s
+result: 27 frames written to extracts/replay_buffer_example.json. action_dim 29. next full_state 71. The last frame is done. fps 50.
+video: extracts/replay_buffer_example.mp4, 960x540, 27 frames, from render-example.
+exit_code: 0
