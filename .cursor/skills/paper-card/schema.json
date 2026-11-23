@@ -1,0 +1,366 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PaperCard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "identity",
+    "summary",
+    "landscape",
+    "data",
+    "model",
+    "compute",
+    "objectives",
+    "procedures",
+    "task",
+    "parts",
+    "gaps"
+  ],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"},
+    "identity": {"$ref": "#/$defs/identity"},
+    "summary": {"type": "string", "minLength": 1},
+    "landscape": {"$ref": "#/$defs/landscape"},
+    "data": {"$ref": "#/$defs/data"},
+    "model": {"$ref": "#/$defs/model"},
+    "compute": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+    "objectives": {"type": "array", "items": {"$ref": "#/$defs/objective"}},
+    "procedures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["train", "infer"],
+      "properties": {
+        "train": {"type": "array", "items": {"$ref": "#/$defs/step"}},
+        "infer": {"type": "array", "items": {"$ref": "#/$defs/step"}}
+      }
+    },
+    "task": {"$ref": "#/$defs/task"},
+    "parts": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {"$ref": "#/$defs/part"}
+    },
+    "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "status": {"enum": ["verified", "inferred", "missing"]},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "locator"],
+      "properties": {
+        "kind": {"enum": ["pdf", "code", "web", "model_card", "readme", "run"]},
+        "locator": {"type": "string", "minLength": 1},
+        "url": {"type": "string"},
+        "quote": {"type": "string"}
+      }
+    },
+    "code": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "start", "end", "url"],
+      "properties": {
+        "path": {"type": "string"},
+        "start": {"type": "integer", "minimum": 1},
+        "end": {"type": "integer", "minimum": 1},
+        "symbol": {"type": "string"},
+        "url": {"type": "string"}
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "authors", "venue", "year", "repo_role"],
+      "properties": {
+        "title": {"type": "string"},
+        "authors": {"type": "array", "items": {"type": "string"}},
+        "venue": {"type": "string"},
+        "year": {"type": "integer"},
+        "arxiv": {"type": ["string", "null"]},
+        "pdf_url": {"type": ["string", "null"]},
+        "pdf_path": {"type": ["string", "null"]},
+        "project_url": {"type": ["string", "null"]},
+        "repo_url": {"type": ["string", "null"]},
+        "repo_commit": {"type": ["string", "null"]},
+        "repo_role": {"enum": ["official", "unofficial", "related", "none"]},
+        "repo_note": {"type": "string"},
+        "distinct_from": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "url", "why"],
+            "properties": {
+              "name": {"type": "string"},
+              "url": {"type": "string"},
+              "why": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "landscape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paradigm", "bottleneck", "hardware_fit"],
+      "properties": {
+        "paradigm": {"type": "string"},
+        "bottleneck": {"type": "string"},
+        "hardware_fit": {"type": "string"}
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "dtype", "shape"],
+      "properties": {
+        "name": {"type": "string"},
+        "dtype": {"type": "string"},
+        "shape": {"type": "string"},
+        "note": {"type": "string"}
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role", "volume", "tier", "status", "sources", "fields", "stream_kind", "feeds_gradient", "golden"],
+      "properties": {
+        "name": {"type": "string"},
+        "role": {"type": "string"},
+        "volume": {"type": "string"},
+        "sampling": {"type": "string"},
+        "augmentation": {"type": "string"},
+        "tier": {"enum": ["loaded", "code", "paper"]},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
+        "fields": {"type": "array", "items": {"$ref": "#/$defs/field"}},
+        "code": {"type": "array", "items": {"$ref": "#/$defs/code"}},
+        "stream_kind": {"enum": ["simulation", "recorded", "teacher", "synthetic", "mixed"]},
+        "feeds_gradient": {"type": "boolean"},
+        "simulator": {"$ref": "#/$defs/simulator"},
+        "recorded": {"$ref": "#/$defs/recorded"},
+        "mixture": {"type": "string", "minLength": 1},
+        "golden": {"$ref": "#/$defs/golden"},
+        "example": {"$ref": "#/$defs/example"}
+      }
+    },
+    "simulator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "env_id", "collector", "status", "sources"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "backend": {"type": "string"},
+        "version": {"type": "string"},
+        "env_id": {"type": "string", "minLength": 1},
+        "parallel_envs": {"type": "string"},
+        "step_s": {"type": "string"},
+        "physics_step_s": {"type": "string"},
+        "collector": {"type": "string", "minLength": 1},
+        "domain_randomization": {"type": "string"},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "recorded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "dataset_name", "success_filter", "status", "sources"],
+      "properties": {
+        "origin": {"enum": ["real_robot", "sim_teleop", "mocap", "human_video", "web", "benchmark_demos", "mixed", "unknown"]},
+        "dataset_name": {"type": "string", "minLength": 1},
+        "success_filter": {"type": "string", "minLength": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "golden": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "description", "status", "sources"],
+      "properties": {
+        "kind": {"enum": ["expert_action", "action_chunk", "reference_motion", "next_state", "reward_return", "goal_image", "none"]},
+        "description": {"type": "string", "minLength": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "trained_checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_name", "dim", "checkpoint_path", "note"],
+      "properties": {
+        "action_name": {"type": "string", "minLength": 1},
+        "dim": {"type": ["integer", "null"], "minimum": 1},
+        "checkpoint_path": {"type": ["string", "null"]},
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "example": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "view", "fps", "num_frames", "video_path", "sidecar_path", "shows", "trained_checkpoint", "sources"],
+      "properties": {
+        "status": {"$ref": "#/$defs/status"},
+        "view": {"enum": ["sim_rgb", "camera", "plot", "none"]},
+        "fps": {"type": ["integer", "null"], "minimum": 1},
+        "num_frames": {"type": ["integer", "null"], "minimum": 1},
+        "video_path": {"type": ["string", "null"]},
+        "sidecar_path": {"type": ["string", "null"]},
+        "shows": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {"enum": ["observation", "trained_checkpoint_action", "golden"]}
+        },
+        "trained_checkpoint": {"$ref": "#/$defs/trained_checkpoint"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "training_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "summary", "status", "sources"],
+      "properties": {
+        "mode": {"enum": ["sim_policy_rollout", "recorded_success", "both", "reference_only", "synthetic_other", "unknown"]},
+        "summary": {"type": "string", "minLength": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["datasets", "note", "training_provenance"],
+      "properties": {
+        "datasets": {"type": "array", "items": {"$ref": "#/$defs/dataset"}},
+        "note": {"type": "string"},
+        "training_provenance": {"$ref": "#/$defs/training_provenance"}
+      }
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "detail", "status", "sources"],
+      "properties": {
+        "name": {"type": "string"},
+        "params": {"type": ["string", "null"]},
+        "detail": {"type": "string"},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
+        "code": {"type": "array", "items": {"$ref": "#/$defs/code"}}
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["overview", "total_params", "modules", "runtime"],
+      "properties": {
+        "overview": {"type": "string"},
+        "total_params": {"$ref": "#/$defs/fact"},
+        "modules": {"type": "array", "items": {"$ref": "#/$defs/module"}},
+        "runtime": {"type": "string"}
+      }
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value", "status", "sources"],
+      "properties": {
+        "name": {"type": "string"},
+        "value": {"type": "string"},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sym", "meaning"],
+      "properties": {
+        "sym": {"type": "string"},
+        "meaning": {"type": "string"}
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "latex", "explanation", "symbols", "status", "sources"],
+      "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "latex": {"type": "string"},
+        "explanation": {"type": "string"},
+        "symbols": {"type": "array", "items": {"$ref": "#/$defs/symbol"}},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
+        "code": {"type": "array", "items": {"$ref": "#/$defs/code"}}
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["embodiment", "action", "horizon", "contact", "latency", "data", "status", "sources"],
+      "properties": {
+        "embodiment": {"type": "string", "minLength": 1},
+        "action": {"type": "string", "minLength": 1},
+        "horizon": {"type": "string", "minLength": 1},
+        "contact": {"type": "string", "minLength": 1},
+        "latency": {"type": "string", "minLength": 1},
+        "data": {"type": "string", "minLength": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim", "status", "sources"],
+      "properties": {
+        "claim": {"type": "string", "minLength": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slot", "choice", "inputs", "outputs", "frozen", "trained", "breaks_if", "status", "sources", "evidence"],
+      "properties": {
+        "slot": {
+          "enum": [
+            "observation_encoder",
+            "language_or_goal",
+            "memory",
+            "action_representation",
+            "controller",
+            "objective"
+          ]
+        },
+        "choice": {"type": "string", "minLength": 1},
+        "inputs": {"type": "string", "minLength": 1},
+        "outputs": {"type": "string", "minLength": 1},
+        "frozen": {"type": "string", "minLength": 1},
+        "trained": {"type": "string", "minLength": 1},
+        "breaks_if": {"type": "string", "minLength": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
+        "code": {"type": "array", "items": {"$ref": "#/$defs/code"}},
+        "evidence": {"$ref": "#/$defs/evidence"}
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "status"],
+      "properties": {
+        "text": {"type": "string"},
+        "status": {"$ref": "#/$defs/status"},
+        "code": {"type": "array", "items": {"$ref": "#/$defs/code"}},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}}
+      }
+    }
+  }
+}

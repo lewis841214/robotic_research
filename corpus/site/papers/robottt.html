@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoboTTT: Context Scaling for Robot Policies</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --ink: #1c1915;
+  --muted: #5e584f;
+  --line: #ddd6c8;
+  --card: #fffdf8;
+  --accent: #0f6e56;
+  --warn: #8a4b08;
+  --bad: #8d2f2f;
+  --code: #efeae0;
+  --link: #0b5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161410;
+    --ink: #f3efe6;
+    --muted: #b7b0a4;
+    --line: #3a342c;
+    --card: #221e19;
+    --accent: #7dcea0;
+    --warn: #e0b15a;
+    --bad: #f0a0a0;
+    --code: #2c271f;
+    --link: #9dc7ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+}
+a { color: var(--link); }
+header, main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+main.wide { width: min(1440px, calc(100% - 24px)); }
+.matrix { overflow-x: auto; }
+.matrix td, .matrix th { min-width: 170px; }
+header { padding: 28px 0 8px; }
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 1.25rem; margin: 28px 0 8px; }
+.lede, .meta { color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.nav a, .pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--card);
+  text-decoration: none;
+  font: 13px/1.6 ui-sans-serif, system-ui, sans-serif;
+}
+.pill.verified { color: var(--accent); }
+.pill.inferred { color: var(--warn); }
+.pill.missing, .pill.none { color: var(--bad); }
+.section, a.paper-row {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+a.paper-row strong { color: var(--link); }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+video { width: 100%; max-width: 960px; background: #000; }
+pre {
+  background: var(--code);
+  padding: 12px;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 8px;
+}
+.formula { overflow-x: auto; padding: 8px 0; }
+.step { margin: 0 0 10px; }
+.sources { color: var(--muted); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+ul.gaps { margin-top: 0; }
+</style>
+</head>
+<body>
+<header>
+<p><a href="../index.html">All papers</a></p>
+<h1>RoboTTT: Context Scaling for Robot Policies</h1>
+<p class="meta">Yunfan Jiang, Yevgen Chebotar, Ruijie Zheng, Fengyuan Hu, Yunhao Ge, Jimmy Wu, Tianyuan Dai, Scott Reed, Li Fei-Fei, Yuke Zhu, Linxi Fan · arXiv 2607.15275 2026</p>
+<p class="nav"><a href="https://arxiv.org/pdf/2607.15275">PDF</a> <a href="https://arxiv.org/abs/2607.15275">arXiv 2607.15275</a> <a href="https://research.nvidia.com/labs/gear/robottt/">project</a> <a href="https://github.com/lucidrains/robo_ttt">repo 98eb8837</a> <span class="pill unofficial">unofficial</span></p>
+<p>lucidrains/robo_ttt implements the fast-weight memory, TTT wrapper, sequence action forcing, and loss mask. It is not NVIDIA&#x27;s GR00T N1.7 training stack. Isaac-GR00T was not cloned.</p>
+</header>
+<main>
+<section class="section"><p>RoboTTT keeps a small MLP&#x27;s weights as the policy&#x27;s memory. Those fast weights are updated by gradient descent on an MSE bind of keys to values, both in training and at deployment, so an 8,000-step history does not grow a KV cache. The paper instantiates this inside each of the 16 DiT layers of GR00T N1.7. The outer loss is flow matching with an independent noise level per action chunk, and TBPTT keeps the backward pass inside a segment while the fast weights themselves continue across the segment. The clone linked below is an unofficial library of that mechanism.</p>
+<p class="meta">Test-time training with fast weights · Short Markov memory and KV-cache growth, with an 8,000-step context in the local note · Local note: ideal stack-on, about 4–5 GB VRAM. The paper&#x27;s pretraining used 16 GB200 GPUs.</p>
+
+</section>
+<section class="section"><h2>Task contract</h2>
+<p class="meta">What a new task has to supply before a slot from this method can move.</p>
+<table><tbody><tr><td>Embodiment</td><td>Downstream eval is a YAM bimanual robot with four 480p cameras. Pretraining also uses tabletop bimanual video and egocentric human video.</td></tr><tr><td>Action</td><td>An action chunk with its own noise level. The chunk length H was not extracted.</td></tr><tr><td>Horizon</td><td>Pretrain context grows to 8,000 steps. Post-train context is 1,000 steps.</td></tr><tr><td>Contact</td><td>The opened sections describe cameras, proprioception, and language. No wrench input was recorded.</td></tr><tr><td>Latency</td><td>Deployment is 30 Hz on an RTX 5090 workstation.</td></tr><tr><td>Data</td><td>Pup Go Car about 8 hours, Circuit about 6 hours, Gear Bot about 5 hours.</td></tr></tbody></table>
+<span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A and the experiment settings</a></div>
+<h2>Parts</h2>
+<h3>Observation encoder <span class="pill verified">verified</span></h3>
+<p><strong>GR00T N1.7 Eagle VLM. The VLM size was not extracted.</strong></p>
+<p>In: Camera images and a proprioceptive token.</p>
+<p>Out: Tokens for the DiT action head.</p>
+<p>Frozen: During pretrain only the new sequence layers train, so the pretrained trunk stays fixed in that phase. Trained: Post-train updates all parameters.</p>
+<p>Breaks if: The observation is not an image-plus-proprioception pair the Eagle trunk can tokenize.</p>
+<p>Evidence: The Eagle trunk was not ablated in the numbers extracted here. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A</a></div><h3>Language or goal <span class="pill verified">verified</span></h3>
+<p><strong>One instruction shared across the trajectory.</strong></p>
+<p>In: A language string l.</p>
+<p>Out: Conditioning for the trajectory. The token layout inside the VLM was not extracted.</p>
+<p>Frozen: Treated as part of the pretrained VLM during the pretrain phase. Trained: Included in the full-parameter post-train.</p>
+<p>Breaks if: The task has no language instruction, or the instruction changes inside one trajectory.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Section 3.2, trajectory tuple</a></div><h3>Memory <span class="pill verified">verified</span></h3>
+<p><strong>A two-layer GeLU MLP whose fast weights are the memory, updated by an MSE bind after attention in each of 16 DiT layers.</strong></p>
+<p>In: Keys and values from the DiT stream. The unofficial module also uses a QKV projection and RoPE.</p>
+<p>Out: A gated residual from the fast MLP. The weights persist across a TBPTT segment.</p>
+<p>Frozen: The fast weights are rewritten at training and at deployment. A tanh gate starts near zero. Trained: About 10M parameters per TTT layer. DiT plus TTT is 690M.</p>
+<p>Breaks if: The new task is a short Markov chunk where a persisting fast weight has nothing to store, or the host network has no DiT block to wrap.</p>
+<p>Evidence: No isolated success delta for the fast-weight layer was extracted. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Eq. 1-2 and Appendix A</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L142-L221">MemoryKeyValueBind · robo_ttt/robo_ttt.py:142-221</a></div><h3>Action representation <span class="pill verified">verified</span></h3>
+<p><strong>Flow matching with an independent noise time on each action chunk.</strong></p>
+<p>In: A noised chunk A_t and a per-chunk time.</p>
+<p>Out: The chunk velocity target used by the DiT head.</p>
+<p>Frozen: The original DiT is 538M before the TTT layers are added. Trained: The DiT head, plus the TTT layers during pretrain.</p>
+<p>Breaks if: Actions are not chunked, so the per-chunk noise schedule has no boundary.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Eq. 5, sequence action forcing</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L908-L957">RoboTTT.forward · robo_ttt/robo_ttt.py:908-957</a></div><h3>Controller <span class="pill verified">verified</span></h3>
+<p><strong>The paper deploys the chunk on the YAM at 30 Hz. The number of actions executed before a replan was not extracted.</strong></p>
+<p>In: The denoised action chunk.</p>
+<p>Out: Robot commands at 30 Hz.</p>
+<p>Frozen: Deployed weights, with fast weights still updating. Trained: No separate impedance network was described.</p>
+<p>Breaks if: The robot cannot accept the YAM action chunk, or it cannot host a test-time weight update.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A, deployment</a></div><h3>Objective <span class="pill verified">verified</span></h3>
+<p><strong>Outer flow-matching loss, plus the inner MSE that writes the fast weights. TBPTT cuts the backward pass at the segment boundary.</strong></p>
+<p>In: A trajectory or a contiguous sub-trajectory up to the context limit.</p>
+<p>Out: A policy loss and an updated fast MLP.</p>
+<p>Frozen: The fast-weight loss is local to the memory bind. Trained: Pretrain: the new sequence layers. Post-train: all parameters.</p>
+<p>Breaks if: Gradients are allowed to flow through the fast weights across the whole 8,000-step context.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Section 4 and Appendix A</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L184-L189">MemoryKeyValueBind._store · robo_ttt/robo_ttt.py:184-189</a></div>
+</section>
+<section class="section"><h2>Data</h2>
+<p class="meta">The unofficial library does not ship the robot episodes. Shapes below are the paper&#x27;s trajectory tuple, tier paper.</p>
+<p><span class="pill recorded_success">recorded_success</span> Pretraining and post-training use recorded robot trajectories and egocentric human video. Fast weights update at test time and do not generate the training set.</p>
+<h3>Pretraining mixture <span class="pill paper">paper</span> <span class="pill verified">verified</span> <span class="pill mixed">mixed</span></h3>
+<p>Tabletop bimanual robot data mixed with egocentric human video, curated toward long trajectories. Context is grown up to 8,000 timesteps.</p>
+<p>A training sequence is a full trajectory or a contiguous sub-trajectory up to the context limit.</p>
+<p>Not extracted.</p>
+<p>Tabletop bimanual robot trajectories mixed with egocentric human video.</p>
+<p>Feeds gradient: true. Golden action_chunk: Each chunk of the recorded trajectory is the flow-matching target.</p>
+<p><strong>Example</strong> <span class="pill missing">missing</span> none. Checkpoint action <code>A_t</code> dim None. No clip aligns a pretraining frame with a trained RoboTTT checkpoint&#x27;s action chunk and the logged action.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>l</code></td><td>language</td><td><code>one instruction per trajectory</code></td><td>Shared across the trajectory</td></tr><tr><td><code>o_t</code></td><td>image</td><td><code>per camera</code></td><td>YAM eval uses four 480p RGB cameras</td></tr><tr><td><code>q_t</code></td><td>proprioception</td><td><code>token</code></td><td>Encoded before the DiT</td></tr><tr><td><code>A_t</code></td><td>action chunk</td><td><code>H steps</code></td><td>Noised independently per chunk</td></tr></tbody></table>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A and section 3.2</a></div><h3>Downstream YAM assemblies <span class="pill paper">paper</span> <span class="pill verified">verified</span> <span class="pill recorded">recorded</span></h3>
+<p>Pup Go Car 8 hours (about 2 min episodes), Circuit 6 hours (about 1 min, 80 configurations), Gear Bot 5 hours (about 5 min). Post-train context is 1,000 steps.</p>
+<p>Circuit trains on 20 configurations and tests 60. Eval is 20 trials, 10 for Gear Bot.</p>
+<p>Not extracted.</p>
+<p>Recorded real_robot: Downstream YAM assemblies. Teleoperated assembly episodes used for post-training.</p>
+<p>Feeds gradient: true. Golden action_chunk: Post-training fits the logged YAM action chunk.</p>
+<p><strong>Example</strong> <span class="pill missing">missing</span> none. Checkpoint action <code>A_t</code> dim None. No clip aligns a YAM assembly frame with a trained RoboTTT checkpoint&#x27;s action chunk and the logged action.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>cameras</code></td><td>RGB 480p</td><td><code>4 views</code></td><td>top, bottom, left wrist, right wrist</td></tr></tbody></table>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Experiment settings</a></div>
+</section>
+<section class="section"><h2>Model</h2>
+<p>GR00T N1.7&#x27;s Eagle VLM plus a DiT action head. A TTT layer is added after attention in each of 16 DiT layers. The fast model is a two-layer GeLU MLP. A tanh gate starts near zero so the pretrained head is preserved. The unofficial module list is the memory bind, the wrapper, and the RoboTTT trainer shell.</p>
+<p><strong>Original DiT 538M. Each TTT layer adds about 10M. DiT plus TTT is 690M. The Eagle VLM is extra and its parameter count was not extracted.</strong> <span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A</a></div></p>
+<p class="meta">The library was indexed with the AST, not imported. No parameter total was counted from the unofficial modules, because their widths are caller-chosen.</p>
+<table><thead><tr><th>Module</th><th>Params</th><th>Detail</th></tr></thead><tbody><tr><td>MemoryKeyValueBind</td><td></td><td>QKV projection, RoPE, and a fast model updated by the gradient of an MSE bind. <div class="sources"><a href="https://github.com/lucidrains/robo_ttt">readme: README: unofficial implementation</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L142-L221">MemoryKeyValueBind · robo_ttt/robo_ttt.py:142-221</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L184-L189">MemoryKeyValueBind._store · robo_ttt/robo_ttt.py:184-189</a></div></td></tr><tr><td>TTTWrapper</td><td></td><td>Update-then-apply over time, tanh layer-scale, optional TBPTT detach. <div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Eq. 1–2 and the tanh gate</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L409-L479">TTTWrapper.forward · robo_ttt/robo_ttt.py:409-479</a></div></td></tr><tr><td>RoboTTT</td><td></td><td>Wraps a base policy, samples a noise time per chunk, and applies a loss mask. <div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Eq. 5, sequence action forcing</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L908-L957">RoboTTT.forward · robo_ttt/robo_ttt.py:908-957</a></div></td></tr><tr><td>GR00T N1.7 DiT</td><td>538M before TTT</td><td>Paper backbone. Not present in this clone. <div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A</a></div></td></tr></tbody></table>
+<h3>AST module outline</h3><p class='meta'>Class and constructor assignments parsed from the clone. Parameter totals come only from the fact above.</p><pre>AST outline of classes whose base names contain Module or PreTrainedModel.
+This is not a live torch.nn.Module print and does not count parameters.
+
+MemoryKeyValueBind  robo_ttt/robo_ttt.py:142
+  bases: Module
+    self.select_tokens_slice = select_tokens_slice
+    self.to_qkv = nn.Sequential(nn.RMSNorm(dim), nn.Linear(dim, dim * 3))
+    self.split_qkv = Rearrange(&#x27;b ... (qkv d) -&gt; qkv b ... d&#x27;, qkv=3)
+    self.rotary_embed_qk = rotary_embed_qk
+    self.memory = memory_net
+    self.base_memory_params = dict(memory_net.named_parameters())
+    self.retrieve = vmap(_retrieve, in_dims=(0, 0))
+    self.store = vmap(grad(_store, argnums=0), in_dims=(0, 0))
+    self.learnable_lr = Parameter(tensor(0.01))
+    self.muon_update = muon_update
+    self.muon_param_names = set()
+    self.learned_forget = learned_forget
+
+fwPKMWrapper  robo_ttt/robo_ttt.py:315
+  bases: Module
+    self.fw_pkm = fw_pkm
+    self.dim = getattr(fw_pkm, &#x27;dim&#x27;, None)
+    self.use_delta_fast_weights = use_delta_fast_weights
+
+fWAWrapper  robo_ttt/robo_ttt.py:359
+  bases: Module
+    self.fwa = fwa
+    self.dim = getattr(fwa, &#x27;dim&#x27;, None)
+    self.use_delta_fast_weights = use_delta_fast_weights
+
+TTTWrapper  robo_ttt/robo_ttt.py:409
+  bases: Module
+    self.dim = dim
+    self.memory = memory
+    self.select_tokens_slice = select_tokens_slice
+    self.tbptt_step_size = tbptt_step_size
+    self.memory_out_layerscale = nn.Parameter(torch.randn(dim) * 0.0001)
+    self.use_delta_fast_weights = default(use_delta_fast_weights, getattr(self.memory, &#x27;use_delta_fast_weights&#x27;, True))
+
+NextLatentPredictor  robo_ttt/robo_ttt.py:514
+  bases: Module
+    self.action_tokens_slice = action_tokens_slice
+    self.state_tokens_slice = state_tokens_slice
+    self.loss_ratio = loss_ratio
+    self.action_loss_weight = action_loss_weight
+    self.min_loss_ratio = min_loss_ratio
+    self.max_loss_ratio = max_loss_ratio
+    self.eps = eps
+
+RoboTTT  robo_ttt/robo_ttt.py:601
+  bases: Module
+    self.model = model
+    self.ttt_wrapper = ttt_wrapper
+    self.batch_time_arg = batch_time_arg
+    self.expand_time_args = set(expand_time_args)
+    self.omit_time_args = set(omit_time_args)
+    self.non_temporal_keys = self.expand_time_args | self.omit_time_args
+    self.times_arg = times_arg
+    self.unreduced_loss_arg = unreduced_loss_arg
+    self.loss_arg = loss_arg
+    self.sample_action_times_fn = sample_action_times_fn
+    self.ttt_wrappers = ModuleList(resolved_wrappers)
+    self.ttt_module_paths = tuple(resolved_paths)
+</pre>
+</section>
+<section class="section"><h2>Compute</h2>
+<table><tbody><tr><td>Pretrain</td><td>30k steps on 16 NVIDIA GB200 GPUs. Per-device batch 4 (global 64) at context &lt;= 4k, and 1 (global 16) above that. AdamW, peak 2e-5, weight decay 1e-5. Only the new sequence layers train.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Section 4 and Appendix A</a></div></td></tr><tr><td>Post-train</td><td>20k steps on 8 GB200 GPUs, context 1,000, per-device batch 1, all parameters, cosine schedule.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A</a></div></td></tr><tr><td>Deploy</td><td>YAM bimanual, RTX 5090 workstation, 30 Hz.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A, deployment</a></div></td></tr></tbody></table>
+</section>
+<section class="section"><h2>Objectives</h2>
+<h3>Fast-weight update <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="W_t \leftarrow W_{t-1}-\eta\nabla_W\lVert f_{W_{t-1}}(K_t)-V_t\rVert^2,\quad O_t=f_{W_t}(Q_t)">W_t \leftarrow W_{t-1}-\eta\nabla_W\lVert f_{W_{t-1}}(K_t)-V_t\rVert^2,\quad O_t=f_{W_t}(Q_t)</div>
+<p>The fast MLP is trained to map keys to values, then queried. The same step runs at train time and at deploy time. In the unofficial memory, the store function returns the negative MSE so that its gradient is the descent direction.</p>
+<ul><li><code>W</code> — Fast weights of the small MLP.</li><li><code>Q,K,V</code> — Projections of the tokens at this timestep.</li><li><code>\eta</code> — Inner learning rate. The paper learns it on top of a base rate 0.1.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Eq. 1–2</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L184-L189">MemoryKeyValueBind._store · robo_ttt/robo_ttt.py:184-189</a></div><h3>Sequence flow matching <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\mathcal{L}_{\mathrm{fm}}(\xi;W_0)=\frac{1}{T}\sum_t\mathbb{E}_{\tau_t,\epsilon}\lVert v_\theta(\Phi_t,A_t^{\tau_t},q_t;W_{t-1})-(A_t-\epsilon)\rVert^2">\mathcal{L}_{\mathrm{fm}}(\xi;W_0)=\frac{1}{T}\sum_t\mathbb{E}_{\tau_t,\epsilon}\lVert v_\theta(\Phi_t,A_t^{\tau_t},q_t;W_{t-1})-(A_t-\epsilon)\rVert^2</div>
+<p>Each chunk draws its own flow time tau_t = 0.999 * (1-u) with u from Beta(1.5, 1). The DiT denoises that chunk conditioned on the fast weights carried in from the previous step. A loss mask can drop timesteps so they update memory without an imitation target.</p>
+<ul><li><code>A_t^{\tau}</code> — tau * A + (1-tau) * epsilon, the noised chunk.</li><li><code>W_{t-1}</code> — Fast weights entering timestep t.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Eq. 5</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L908-L957">RoboTTT.forward · robo_ttt/robo_ttt.py:908-957</a></div><h3>Tanh gate <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="O=\tanh(\alpha)\odot O_{\mathrm{TTT}}+O_{\mathrm{attn}}">O=\tanh(\alpha)\odot O_{\mathrm{TTT}}+O_{\mathrm{attn}}</div>
+<p>Alpha is initialized near 0.001 so TTT starts as a small residual on the pretrained attention output. The unofficial wrapper uses a layer-scale initialized at 1e-4 and applies tanh.</p>
+<ul><li><code>\alpha</code> — Per-channel gate, learned.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Gating equation</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L409-L479">TTTWrapper.forward · robo_ttt/robo_ttt.py:409-479</a></div>
+</section>
+<section class="section"><h2>Train</h2><div class="step"><strong>1.</strong> Start from GR00T N1.7 and add a two-layer fast MLP after attention in each of 16 DiT layers. Freeze the base model during the 30k-step pretrain. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A</a></div></div>
+<div class="step"><strong>2.</strong> On each training sequence, update fast weights with the inner MSE, then apply them to the queries. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Eq. 1–2</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L184-L189">MemoryKeyValueBind._store · robo_ttt/robo_ttt.py:184-189</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L409-L479">TTTWrapper.forward · robo_ttt/robo_ttt.py:409-479</a></div></div>
+<div class="step"><strong>3.</strong> Draw an independent flow time per action chunk and average the flow-matching loss over the sequence. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Eq. 5</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L908-L957">RoboTTT.forward · robo_ttt/robo_ttt.py:908-957</a></div></div>
+<div class="step"><strong>4.</strong> Backpropagate only inside a TBPTT segment. Carry the fast weights across the boundary and detach their gradient there. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Section 3.2, TBPTT</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L409-L479">TTTWrapper.forward · robo_ttt/robo_ttt.py:409-479</a></div></div>
+<div class="step"><strong>5.</strong> For video imitation or DAgger distillation, mask the flow-matching loss on context timesteps so they update memory only. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Section 3.3</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L908-L957">RoboTTT.forward · robo_ttt/robo_ttt.py:908-957</a></div></div></section>
+<section class="section"><h2>Infer</h2><div class="step"><strong>1.</strong> Start the rollout from the learned initialization W_0. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Inference paragraph</a></div></div>
+<div class="step"><strong>2.</strong> On the current observation, update the fast weights, then denoise the action chunk for k steps. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Inference paragraph</a> · <a href="https://github.com/lucidrains/robo_ttt/blob/98eb8837f66ec28a0d131fc8bfabb8d6c7bb017e/robo_ttt/robo_ttt.py#L409-L479">TTTWrapper.forward · robo_ttt/robo_ttt.py:409-479</a></div></div>
+<div class="step"><strong>3.</strong> Carry those fast weights to the next control step. On the YAM robot this runs at 30 Hz on an RTX 5090. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2607.15275">pdf: Appendix A</a></div></div></section>
+<section class="section"><h2>Gaps</h2><ul class="gaps"><li>NVIDIA has not published the GR00T N1.7 + TTT training code in the sources found here. Links are to the unofficial library, and the match is the mechanism, not a line-by-line port of the paper&#x27;s trainer.</li><li>Eagle VLM parameter count, image resolution during pretraining, and the exact segment length used for TBPTT were not extracted.</li><li>The library was not imported, so there is no live parameter print.</li><li>No example clip aligns a training frame with a trained RoboTTT checkpoint&#x27;s action and the logged action chunk.</li></ul></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script>
+document.querySelectorAll(".formula").forEach((el) => {
+  if (window.katex) {
+    katex.render(el.dataset.latex, el, {displayMode: true, throwOnError: false});
+  }
+});
+</script>
+</body>
+</html>

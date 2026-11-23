@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CompVLA: A Variable Compliance Vision-Language-Action Model for Contact-rich Manipulation</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --ink: #1c1915;
+  --muted: #5e584f;
+  --line: #ddd6c8;
+  --card: #fffdf8;
+  --accent: #0f6e56;
+  --warn: #8a4b08;
+  --bad: #8d2f2f;
+  --code: #efeae0;
+  --link: #0b5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161410;
+    --ink: #f3efe6;
+    --muted: #b7b0a4;
+    --line: #3a342c;
+    --card: #221e19;
+    --accent: #7dcea0;
+    --warn: #e0b15a;
+    --bad: #f0a0a0;
+    --code: #2c271f;
+    --link: #9dc7ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+}
+a { color: var(--link); }
+header, main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+main.wide { width: min(1440px, calc(100% - 24px)); }
+.matrix { overflow-x: auto; }
+.matrix td, .matrix th { min-width: 170px; }
+header { padding: 28px 0 8px; }
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 1.25rem; margin: 28px 0 8px; }
+.lede, .meta { color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.nav a, .pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--card);
+  text-decoration: none;
+  font: 13px/1.6 ui-sans-serif, system-ui, sans-serif;
+}
+.pill.verified { color: var(--accent); }
+.pill.inferred { color: var(--warn); }
+.pill.missing, .pill.none { color: var(--bad); }
+.section, a.paper-row {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+a.paper-row strong { color: var(--link); }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+video { width: 100%; max-width: 960px; background: #000; }
+pre {
+  background: var(--code);
+  padding: 12px;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 8px;
+}
+.formula { overflow-x: auto; padding: 8px 0; }
+.step { margin: 0 0 10px; }
+.sources { color: var(--muted); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+ul.gaps { margin-top: 0; }
+</style>
+</head>
+<body>
+<header>
+<p><a href="../index.html">All papers</a></p>
+<h1>CompVLA: A Variable Compliance Vision-Language-Action Model for Contact-rich Manipulation</h1>
+<p class="meta">Jongmin Kim, Junsu Ha, Che-Sang Park, Minchang Song, Hyeokju Jeong, Himchan Hwang, Jianlong Fu, Frank C. Park · CoRL 2026 2026</p>
+<p class="nav"><a href="https://arxiv.org/pdf/2609.23614">PDF</a> <a href="https://arxiv.org/abs/2609.23614">arXiv 2609.23614</a> <a href="https://compvla.github.io/">project</a> <span class="pill none">none</span></p>
+<p>The project page and the paper describe a released demonstration dataset. No public training repository was found in this pass.</p>
+</header>
+<main>
+<section class="section"><p>CompVLA adds a second flow-matching expert to a pi0-style VLA. The action expert predicts a TCP twist and gripper command. The compliance expert, conditioned on that trajectory, predicts a diagonal stiffness and a virtual displacement. A geometric impedance controller turns those into directional compliance and a pressing force. The paper learns stiffness Kd, not a proportional gain Kp. The local landscape row&#x27;s Kp label is therefore the planning note, not the paper&#x27;s output. No code was linked because no repository was released in the sources opened here.</p>
+<p class="meta">Variable-compliance VLA. The local note says Kp and Kd plus actions. The paper&#x27;s learned compliance outputs are diagonal stiffness and virtual displacement. · Rigid position control on contact-rich tasks · Local note: ideal stack-on, about 3–4 GB VRAM</p>
+
+</section>
+<section class="section"><h2>Task contract</h2>
+<p class="meta">What a new task has to supply before a slot from this method can move.</p>
+<table><tbody><tr><td>Embodiment</td><td>Franka Research 3 with three RealSense cameras.</td></tr><tr><td>Action</td><td>TCP twist and gripper, plus diagonal stiffness and a 6-d virtual displacement. Chunk length T=25.</td></tr><tr><td>Horizon</td><td>Inference denoises the action expert for 10 steps. Logs are synchronized at 10 Hz.</td></tr><tr><td>Contact</td><td>Training labels come from the interaction wrench. Inference inputs are images and joints. The low-level law is geometric impedance.</td></tr><tr><td>Latency</td><td>GPU model and wall time were not stated in the training paragraph.</td></tr><tr><td>Data</td><td>The paper says 100 demonstrations per task. The project page says 107 to 115 episodes per task.</td></tr></tbody></table>
+<span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A and the experiments section</a> · <a href="https://compvla.github.io/">web: Project page, Contact-rich Demonstration Dataset</a></div>
+<h2>Parts</h2>
+<h3>Observation encoder <span class="pill verified">verified</span></h3>
+<p><strong>pi0 / PaliGemma vision-language backbone, initialized from lerobot/pi0_base.</strong></p>
+<p>In: Three camera views and joint position.</p>
+<p>Out: Backbone tokens attended by both experts.</p>
+<p>Frozen: The initialization is pi0_base. Which backbone blocks stay frozen was not stated in the opened training paragraph. Trained: The training paragraph states the joint optimization. A per-block freeze list was not extracted.</p>
+<p>Breaks if: The new task has no calibrated multi-view images of a Franka TCP, or it cannot start from a pi0 checkpoint.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, Training</a> · <a href="https://compvla.github.io/">web: Project page, Dual-expert Architecture</a></div><h3>Language or goal <span class="pill missing">missing</span></h3>
+<p><strong>A language or goal conditioning channel was not recorded in the sections opened for this card.</strong></p>
+<p>In: The opened field list is images, joints, torque, wrench, and the motion token.</p>
+<p>Out: Not recorded.</p>
+<p>Frozen: Not recorded. Trained: Not recorded.</p>
+<p>Breaks if: A swap that assumes a pi0 text prompt cannot be checked from the sections opened here.</p>
+<p>Evidence: No comparison of language conditioning was extracted. <span class="pill missing">missing</span> </p>
+<h3>Memory <span class="pill verified">verified</span></h3>
+<p><strong>A chunk of T=25. No test-time memory beyond that chunk was described.</strong></p>
+<p>In: The current observation and the noisy action and compliance sequences.</p>
+<p>Out: A 25-step action sequence and a 25-step compliance sequence.</p>
+<p>Frozen: No extra memory state was described. Trained: The two experts.</p>
+<p>Breaks if: The task needs history longer than one 25-step chunk.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Action-token paragraph, T=25</a></div><h3>Action representation <span class="pill verified">verified</span></h3>
+<p><strong>Flow matching. The action expert emits TCP twist and gripper. The compliance expert emits diagonal stiffness and virtual displacement.</strong></p>
+<p>In: Noisy action tokens, and for the compliance expert a 13-d relative-pose condition.</p>
+<p>Out: Twist plus gripper, stiffness k_t, and virtual displacement d_t.</p>
+<p>Frozen: The compliance expert is initialized by copying the action expert. A freeze after that copy was not stated. Trained: Both experts.</p>
+<p>Breaks if: The robot command is not a TCP twist, or the task has no relative-pose signal for the compliance expert.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, action expert and eq. 8</a></div><h3>Controller <span class="pill verified">verified</span></h3>
+<p><strong>Geometric impedance. The virtual target is the reference pose deformed by d. Only Kd is learned.</strong></p>
+<p>In: The reference pose, diagonal stiffness, and virtual displacement.</p>
+<p>Out: A compliant wrench-level command.</p>
+<p>Frozen: The controller is a geometric law, not a learned network. Trained: Kd and d. Kp is not a learned output.</p>
+<p>Breaks if: The robot cannot run impedance control, or the task needs a learned proportional gain.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A.2, eq. 13</a></div><h3>Objective <span class="pill verified">verified</span></h3>
+<p><strong>Joint flow matching on the action sequence and the compliance sequence.</strong></p>
+<p>In: Clean action Y and clean compliance Y, noised along tau from data to noise.</p>
+<p>Out: The regression target is noise minus the clean sequence.</p>
+<p>Frozen: Not stated as a frozen loss term. Trained: The dual-expert policy for 100,000 steps, batch 32, bfloat16.</p>
+<p>Breaks if: The compliance labels, which are derived from the interaction wrench, are absent.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, the joint flow-matching loss</a></div>
+</section>
+<section class="section"><h2>Data</h2>
+<p class="meta">Episode files were not downloaded. The field list is the paper&#x27;s and the project page&#x27;s description of the teleop logs.</p>
+<p><span class="pill recorded_success">recorded_success</span> Training uses force-aware teleoperated demonstrations. Stiffness and virtual-displacement labels are derived from the recorded wrench.</p>
+<h3>CompVLA contact-rich teleop set <span class="pill paper">paper</span> <span class="pill verified">verified</span> <span class="pill recorded">recorded</span></h3>
+<p>The paper says 100 demonstrations per task. The project page says 107–115 episodes per task. Tasks used in the main table are Erase Whiteboard, Pivot, Cup Dispense, and Pick and Place. Eval is 20 episodes per task, three runs for the VLA methods.</p>
+<p>Teleoperation with a force-aware leader-follower. Stiffness and virtual-displacement labels are derived from recorded interaction wrench. Force/torque is not a policy input at inference.</p>
+<p>Not stated in the training appendix section used here.</p>
+<p>Recorded real_robot: CompVLA contact-rich teleop set. Teleoperated demonstrations, about 100 episodes per task.</p>
+<p>Feeds gradient: true. Golden action_chunk: The motion token of length 25 holds TCP twist, gripper, diagonal stiffness, and virtual displacement derived from the demonstration.</p>
+<p><strong>Example</strong> <span class="pill missing">missing</span> none. Checkpoint action <code>motion token</code> dim None. No clip aligns a teleop frame with a trained CompVLA checkpoint&#x27;s action and the logged motion token.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>images</code></td><td>RGB</td><td><code>3 RealSense views</code></td><td>Franka Research 3</td></tr><tr><td><code>joint_position</code></td><td>float</td><td><code>per joint, native rate then 10 Hz</code></td><td>Project page</td></tr><tr><td><code>joint_torque</code></td><td>float</td><td><code>per joint</code></td><td>Logged, not required at inference</td></tr><tr><td><code>wrist_wrench</code></td><td>float</td><td><code>6</code></td><td>Training labels only</td></tr><tr><td><code>motion token</code></td><td>float</td><td><code>T=25 by (6 twist + gripper + 6 stiffness + 6 virtual displacement)</code></td><td>Eq. 6 and the action-token paragraph</td></tr></tbody></table>
+<div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: arXiv HTML, experiments: 100 demonstrations per task; 20-episode evals</a> · <a href="https://compvla.github.io/">web: Project page, Contact-rich Demonstration Dataset</a></div>
+</section>
+<section class="section"><h2>Model</h2>
+<p>A pi0 backbone (PaliGemma VLM plus an action expert) gains a compliance expert initialized by copying the action expert. Both experts attend to the VLM with a blockwise causal mask. Weights start from lerobot/pi0_base. The compliance expert also sees a 13-d relative-pose condition packed into the noisy compliance input.</p>
+<p><strong>Not stated in the sections opened for this card.</strong> <span class="pill missing">missing</span> </p>
+<p class="meta">No repository was cloned, so there is no AST outline and no torch print.</p>
+<table><thead><tr><th>Module</th><th>Params</th><th>Detail</th></tr></thead><tbody><tr><td>VLM backbone</td><td></td><td>pi0 / PaliGemma backbone, initialized from lerobot/pi0_base. <div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, Training</a> · <a href="https://compvla.github.io/">web: Project page, Dual-expert Architecture</a></div></td></tr><tr><td>Action expert</td><td></td><td>Denoises TCP twist and gripper over horizon T=25. Inference uses 10 denoising steps. <div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, action expert paragraph</a></div></td></tr><tr><td>Compliance expert</td><td></td><td>Same block structure, conditioned on relative TCP trajectory Z_t. Outputs k_t and d_t. <div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, eq. 8 and compliance expert</a></div></td></tr><tr><td>Geometric impedance controller</td><td></td><td>Virtual target is the reference pose deformed by d. Only Kd is learned. <div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A.2, eq. 13; main text on learning only Kd</a></div></td></tr></tbody></table>
+
+</section>
+<section class="section"><h2>Compute</h2>
+<table><tbody><tr><td>Optimiser</td><td>100,000 steps, batch 32, bfloat16, gradient checkpointing, AdamW peak 2.5e-5, 1,000-step warmup, decay to 2.5e-6 over 30,000 steps.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, Training</a></div></td></tr><tr><td>Inference denoising</td><td>10 steps from noise for the action expert.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, action expert</a></div></td></tr><tr><td>GPU model and wall time</td><td>Not stated in that training paragraph.</td><td><span class="pill missing">missing</span> </td></tr></tbody></table>
+</section>
+<section class="section"><h2>Objectives</h2>
+<h3>Noisy target path <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\tilde{Y}_t(\tau)=\tau\epsilon+(1-\tau)Y_t">\tilde{Y}_t(\tau)=\tau\epsilon+(1-\tau)Y_t</div>
+<p>Tau 1 is noise and tau 0 is the data. Because inference integrates from 1 to 0, the regression target is epsilon minus Y.</p>
+<ul><li><code>Y_t</code> — Clean action sequence or clean compliance sequence.</li><li><code>\epsilon</code> — Gaussian noise of the same shape.</li><li><code>\tau</code> — Flow time, uniform on (0, 1).</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, eq. 9</a></div><h3>Joint flow-matching loss <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\mathcal{L}=\mathcal{L}_a+\mathcal{L}_c,\quad \mathcal{L}_a=\mathbb{E}\lVert v^a_\theta(\tilde{Y}^a,\tau\mid O_t,l)-(\epsilon^a-Y^a)\rVert_2^2,\quad \mathcal{L}_c=\mathbb{E}\lVert v^c_\theta(\tilde{Y}^c,\tau\mid O_t,l,Z_t)-(\epsilon^c-Y^c)\rVert_2^2">\mathcal{L}=\mathcal{L}_a+\mathcal{L}_c,\quad \mathcal{L}_a=\mathbb{E}\lVert v^a_\theta(\tilde{Y}^a,\tau\mid O_t,l)-(\epsilon^a-Y^a)\rVert_2^2,\quad \mathcal{L}_c=\mathbb{E}\lVert v^c_\theta(\tilde{Y}^c,\tau\mid O_t,l,Z_t)-(\epsilon^c-Y^c)\rVert_2^2</div>
+<p>The action expert is conditioned on the observation and language. The compliance expert is also conditioned on the relative TCP trajectory. During training that trajectory is the demonstration. During inference it is the action expert&#x27;s prediction. Joint angles are an auxiliary training target and are dropped at inference.</p>
+<ul><li><code>Y^a</code> — TCP twists and gripper commands over the chunk.</li><li><code>Y^c</code> — Diagonal stiffness and virtual displacement over the chunk.</li><li><code>Z_t</code> — Relative TCP poses and gripper commands, eq. 8.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, eq. 10–12</a></div>
+</section>
+<section class="section"><h2>Train</h2><div class="step"><strong>1.</strong> Initialize from pi0_base and copy the action expert into the compliance expert. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, Training</a></div></div>
+<div class="step"><strong>2.</strong> Build stiffness and virtual-displacement labels from the demonstrated wrench. Learn Kd only. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Section on directional compliance and force modulation</a></div></div>
+<div class="step"><strong>3.</strong> Sample tau and noise, form the straight path, and regress both vector fields. Condition the compliance expert on the dataset trajectory Z_t. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, eq. 9–12</a></div></div>
+<div class="step"><strong>4.</strong> Train 100k steps at batch 32 in bfloat16 with the AdamW schedule above. Keep joint-angle channels as an auxiliary target. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, Training</a></div></div></section>
+<section class="section"><h2>Infer</h2><div class="step"><strong>1.</strong> From images, language, and robot state, denoise the action expert for 10 steps to a TCP twist and gripper command. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A, action expert</a></div></div>
+<div class="step"><strong>2.</strong> Integrate the twist into a reference trajectory and condition the compliance expert on it. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Dual-expert paragraph and eq. 8</a></div></div>
+<div class="step"><strong>3.</strong> Deform the reference pose by the predicted virtual displacement and run geometric impedance control with the predicted diagonal stiffness. Do not read the wrist wrench. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2609.23614">pdf: Appendix A.2, eq. 13</a> · <a href="https://compvla.github.io/">web: Project page, real-world experiments</a></div></div></section>
+<section class="section"><h2>Gaps</h2><ul class="gaps"><li>No public training code, so no formula is linked to a function and no module was printed.</li><li>Parameter count, GPU model, and wall time were not in the training paragraph.</li><li>The paper&#x27;s 100 demonstrations and the project page&#x27;s 107–115 episodes were both recorded and not reconciled.</li><li>Image augmentation was not stated in the section used here.</li><li>No example clip aligns a teleop frame with a trained CompVLA checkpoint&#x27;s action and the logged motion token.</li></ul></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script>
+document.querySelectorAll(".formula").forEach((el) => {
+  if (window.katex) {
+    katex.render(el.dataset.latex, el, {displayMode: true, throwOnError: false});
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SuperMimic: Scaling Humanoid Whole-Body Control with One Differentiable World Model</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --ink: #1c1915;
+  --muted: #5e584f;
+  --line: #ddd6c8;
+  --card: #fffdf8;
+  --accent: #0f6e56;
+  --warn: #8a4b08;
+  --bad: #8d2f2f;
+  --code: #efeae0;
+  --link: #0b5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161410;
+    --ink: #f3efe6;
+    --muted: #b7b0a4;
+    --line: #3a342c;
+    --card: #221e19;
+    --accent: #7dcea0;
+    --warn: #e0b15a;
+    --bad: #f0a0a0;
+    --code: #2c271f;
+    --link: #9dc7ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+}
+a { color: var(--link); }
+header, main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+main.wide { width: min(1440px, calc(100% - 24px)); }
+.matrix { overflow-x: auto; }
+.matrix td, .matrix th { min-width: 170px; }
+header { padding: 28px 0 8px; }
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 1.25rem; margin: 28px 0 8px; }
+.lede, .meta { color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.nav a, .pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--card);
+  text-decoration: none;
+  font: 13px/1.6 ui-sans-serif, system-ui, sans-serif;
+}
+.pill.verified { color: var(--accent); }
+.pill.inferred { color: var(--warn); }
+.pill.missing, .pill.none { color: var(--bad); }
+.section, a.paper-row {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+a.paper-row strong { color: var(--link); }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+video { width: 100%; max-width: 960px; background: #000; }
+pre {
+  background: var(--code);
+  padding: 12px;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 8px;
+}
+.formula { overflow-x: auto; padding: 8px 0; }
+.step { margin: 0 0 10px; }
+.sources { color: var(--muted); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+ul.gaps { margin-top: 0; }
+</style>
+</head>
+<body>
+<header>
+<p><a href="../index.html">All papers</a></p>
+<h1>SuperMimic: Scaling Humanoid Whole-Body Control with One Differentiable World Model</h1>
+<p class="meta">Qiayuan Liao, Yiyang Shao, Junfeng Long, Kevin Zakka, Roberto Horowitz, Pieter Abbeel, Koushil Sreenath · arXiv 2610.28480 2026</p>
+<p class="nav"><a href="https://arxiv.org/pdf/2610.28480">PDF</a> <a href="https://arxiv.org/abs/2610.28480">arXiv 2610.28480</a> <a href="https://supermimic.github.io/">project</a> <a href="https://github.com/HybridRobotics/supermimic">repo 698ea39b</a> <span class="pill official">official</span></p>
+<p>Official repository at 698ea39, with mjlab_research cloned beside it. play.py exited 2 because --wandb-path is required and the README names no run. train.py ran SuperMimic-GenCoord-G1 on an RTX 5070 Ti. The W&amp;B motion registry needs an API key, so the motion was a 64-frame random G1 clip.</p>
+</header>
+<main>
+<section class="section"><p>One differentiable world model is fit to short windows of a MuJoCo Warp humanoid, then a tracking policy is improved by backpropagating through 32 imagined steps of that frozen model. The paper&#x27;s claim is the compute cut: within 3 hours on one H100 the return passes a SONIC checkpoint that the paper accounts as 128 L40 GPUs for 168 hours. A GenCoord G1 run on an RTX 5070 Ti constructed the default MLPs and saved 18,816,634 parameters: dynamics 8,745,346, sim context 66, actor 9,839,797, critic 231,425.</p>
+<p class="meta">Differentiable world model and short-horizon BPTT · GPU scaling of model-free RL. The paper reports more than a 1000x GPU-hour cut against the cited SONIC run. · Local note: ideal online RL, about 6–8 GB VRAM. The paper&#x27;s reported runs use H100 80 GB.</p>
+
+</section>
+<section class="section"><h2>Task contract</h2>
+<p class="meta">What a new task has to supply before a slot from this method can move.</p>
+<table><tbody><tr><td>Embodiment</td><td>Unitree G1 humanoid in MuJoCo Warp.</td></tr><tr><td>Action</td><td>GenCoord G1 built a 29-d action. The decoder&#x27;s last layer is (29, 256).</td></tr><tr><td>Horizon</td><td>The world model is fit on windows of 8 steps. Policy improvement imagines 32 steps.</td></tr><tr><td>Contact</td><td>Sim context is 33-d: foot_friction, base_com, encoder_bias. No tactile image.</td></tr><tr><td>Latency</td><td>The GenCoord environment step is 0.02 s and the physics step is 0.005 s. The paper&#x27;s result run is one H100 for 3 hours.</td></tr><tr><td>Data</td><td>A library of 129,514 reference motions. The replay buffer stores 1,000 steps per environment.</td></tr></tbody></table>
+<span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 4.1</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L51-L79">code: SuperMimicRunnerCfg and _buffer_schema</a> · run: extracts/run_train.txt, GenCoord G1 on an RTX 5070 Ti</div>
+<h2>Parts</h2>
+<h3>Observation encoder <span class="pill verified">verified</span></h3>
+<p><strong>The representation&#x27;s state vector, normalized, concatenated with the processed action and the sim context.</strong></p>
+<p>In: Representation state 68, action 29, and sim context 33, concatenated to 130.</p>
+<p>Out: A 35-d prediction. The run printed full state 71 and goal 670.</p>
+<p>Frozen: The world model is frozen while the policy is improved. Trained: The dynamics MLP, widths 2048, 2048, 2048, during the world-model fit.</p>
+<p>Breaks if: The new task provides cameras or language and has no MuJoCo representation state.</p>
+<p>Evidence: The published comparison does not swap this state encoder for a vision encoder. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 3.2</a> · run: extracts/run_train.txt, GenCoord G1 on an RTX 5070 Ti · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/models.py#L46-L98">Dynamics · src/supermimic/models.py:46-98</a></div><h3>Language or goal <span class="pill verified">verified</span></h3>
+<p><strong>A reference motion clip. The actor has a per-task encoder.</strong></p>
+<p>In: The motion clip and motion_time.</p>
+<p>Out: A 32-d tanh latent inside the actor.</p>
+<p>Frozen: The goal is data, not a trained language model. Trained: The per-task encoder.</p>
+<p>Breaks if: The new task has no reference motion to track.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 4.1, motion library</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/models.py#L104-L160">MultiEncoderAE · src/supermimic/models.py:104-160</a></div><h3>Memory <span class="pill verified">verified</span></h3>
+<p><strong>Short imagined rollout. The world model is unrolled 8 steps on logged actions and 32 steps for the policy.</strong></p>
+<p>In: A buffer state, an action, and sim context.</p>
+<p>Out: Predicted next state, reward, observation, and termination.</p>
+<p>Frozen: The world model is frozen during the policy update. Trained: The dynamics MLP during its own fit.</p>
+<p>Breaks if: The useful horizon is far beyond 32 imagined steps, or the simulator cannot be differentiated.</p>
+<p>Evidence: The 32-step horizon was not given its own ablation on this card. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L51-L79">code: World-model window and policy horizon defaults</a></div><h3>Action representation <span class="pill verified">verified</span></h3>
+<p><strong>A per-task encoder to a 32-d tanh latent and a shared decoder.</strong></p>
+<p>In: The tracking observation and the task id.</p>
+<p>Out: A raw action stored in the replay buffer.</p>
+<p>Frozen: The decoder is shared. The world model does not train in this step. Trained: The actor.</p>
+<p>Breaks if: The action is a dexterous gripper command or a language-conditioned chunk rather than a humanoid tracking action.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 3.2</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/models.py#L104-L160">MultiEncoderAE · src/supermimic/models.py:104-160</a></div><h3>Controller <span class="pill verified">verified</span></h3>
+<p><strong>The policy action is applied in MuJoCo Warp. No learned compliance controller was described.</strong></p>
+<p>In: The decoded action.</p>
+<p>Out: A simulator step.</p>
+<p>Frozen: The world model stays fixed. Trained: No low-level controller weights were described.</p>
+<p>Breaks if: The new task needs a force or impedance command rather than a direct tracking action.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 3, policy improvement through the world model</a></div><h3>Objective <span class="pill verified">verified</span></h3>
+<p><strong>Fit the world model on 8-step windows, then ascend the imagined return through 32 frozen steps. A critic regresses the return.</strong></p>
+<p>In: Logged transitions, then imagined states.</p>
+<p>Out: A world-model loss and a policy gradient through the model.</p>
+<p>Frozen: The world model is frozen during the policy step. Trained: Dynamics, then actor and critic.</p>
+<p>Breaks if: The simulator is not differentiable, so the 32-step gradient has nowhere to go.</p>
+<p>Evidence: One H100 for 3 hours passes the cited SONIC return, and two H100s for 9.8 hours reach zero failures on 129,514 motions. The comparison is the full recipe, not an ablation of the MLP width. <span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 4.1</a></div></p>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 4.1</a></div>
+</section>
+<section class="section"><h2>Data</h2>
+<p class="meta">The paper&#x27;s 129,514-motion library was not downloaded. The W&amp;B registry requires an API key. A 64-frame random G1 clip was opened so train.py could build the env. The replay-buffer schema was read from the runner. The GenCoord run measured full state 71, goal 670, action 29, and sim context 33.</p>
+<p><span class="pill both">both</span> The motion library is recorded reference motion. Training transitions are generated by the current actor stepping MuJoCo Warp. The world model is fit on those transitions, then the actor is updated through the frozen model.</p>
+<h3>Motion library <span class="pill paper">paper</span> <span class="pill verified">verified</span> <span class="pill recorded">recorded</span></h3>
+<p>Shared benchmark of 129,514 motions. The scaling sweep runs from 1 hour to 264 hours of motion.</p>
+<p>Default runner mode is return-based reset sampling: 0.50 uniform, a softmax on negative return with steepness 25, and 0.10 on bins that have accumulated focus.</p>
+<p>Action noise is added in simulation so the world model sees a wider action range. Sensor noise is added outside the world model.</p>
+<p>Recorded mocap: Motion library. Reference clips are the tracking goal. The sections used here do not filter them by task success.</p>
+<p>Feeds gradient: false. Golden reference_motion: The clip supplies the tracking goal. It is not the world-model regression target.</p>
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>reference motion</code></td><td>mocap clip</td><td><code>variable length</code></td><td>Unitree G1 tracking</td></tr><tr><td><code>sim context xi</code></td><td>float</td><td><code>friction, calibration, torso COM</code></td><td>Conditions the deterministic world model</td></tr></tbody></table>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 4.1 and the dataset-length sweep</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/reset_sampling.py#L147-L153">ReturnSampler._distribution · src/supermimic/runners/reset_sampling.py:147-153</a></div><h3>Replay buffer <span class="pill code">code</span> <span class="pill verified">verified</span> <span class="pill simulation">simulation</span></h3>
+<p>Default buffer length 1000 steps per environment. World-model windows are 8 steps, batch 2048, 10 batches. Policy imagination uses batch 4096 and horizon 32.</p>
+<p>New transitions replace the oldest. Imagination seeds are sampled from the buffer.</p>
+<p>None inside the buffer. Noise is applied at collection and again when the policy reads a predicted observation.</p>
+<p>Simulator MuJoCo Warp, env <code>SuperMimic-GenCoord-G1</code>, collector current actor.</p>
+<p>Feeds gradient: true. Golden next_state: The world model regresses the logged next state over 8 steps. The actor&#x27;s return uses the logged reward, which is not a separate demonstration action.</p>
+<p><strong>Example</strong> <span class="pill missing">missing</span> none. Checkpoint action <code>joint_pos</code> dim 29. No clip aligns a sim frame with the trained actor&#x27;s 29-d joint_pos action and the logged next state. The smoke-run actor.pt was not replayed per frame.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>state</code></td><td>float</td><td><code>(buffer, 71)</code></td><td>GenCoord full state printed by the run.</td></tr><tr><td><code>action</code></td><td>float</td><td><code>(buffer, 29)</code></td><td>Decoder output width on the GenCoord G1 run.</td></tr><tr><td><code>prev_action</code></td><td>float</td><td><code>(buffer, num_actions)</code></td><td></td></tr><tr><td><code>motion_time</code></td><td>long</td><td><code>(buffer,)</code></td><td></td></tr><tr><td><code>terminated / truncated</code></td><td>bool</td><td><code>(buffer,)</code></td><td></td></tr><tr><td><code>sim_ctx</code></td><td>float</td><td><code>(buffer, 33)</code></td><td>foot_friction, base_com, encoder_bias.</td></tr></tbody></table>
+<div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py">code: SuperMimicRunnerCfg and _buffer_schema</a> · run: extracts/run_train.txt, GenCoord G1 on an RTX 5070 Ti · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L322-L337">SuperMimicRunner._buffer_schema · src/supermimic/runners/supermimic_runner.py:322-337</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L51-L79">SuperMimicRunnerCfg · src/supermimic/runners/supermimic_runner.py:51-79</a></div>
+</section>
+<section class="section"><h2>Model</h2>
+<p>Dynamics is an MLP on normalized representation-state, processed action, and sim context. It predicts an acceleration-level increment that the representation integrates. The actor is a per-task encoder to a 32-d tanh latent and a shared decoder. The critic is a smaller MLP. Defaults are in SuperMimicRunnerCfg.</p>
+<p><strong>18,816,634 on the GenCoord G1 run: dynamics 8,745,346, sim context 66, actor 9,839,797, critic 231,425.</strong> <span class="pill verified">verified</span> <div class="sources">run: extracts/run_train.txt, GenCoord G1 on an RTX 5070 Ti</div></p>
+<p class="meta">Device cuda:0, NVIDIA GeForce RTX 5070 Ti, torch 2.15.0+cu132. play.py SuperMimic-GenCoord-G1 exited 2: --wandb-path is required and the README does not name a run. train.py then ran 8 iterations with 32 envs. The first pass never called the optimizer, because the only scheduled update fired when the replay buffer held 1 frame and the world-model horizon is 8. A second pass kept horizons 8 and 32, set the world-model batch to 1x32 and the policy batch to 32, and at iteration 7 logged Loss/state 3.1136, Loss/joint_pos 0.0383, Loss/joint_vel 7.0647, Policy/reward -0.3996, Policy/value_function 0.3386. World-model step 32.0 s, policy step 151.4 s. The run printed State Dim 71, Goal Dim 670, sim context 33 (foot_friction, base_com, encoder_bias), representation full 71, rep 68, pred 35. Environment step 0.02 s.</p>
+<table><thead><tr><th>Module</th><th>Params</th><th>Detail</th></tr></thead><tbody><tr><td>Dynamics</td><td>8,745,346</td><td>MLP widths (2048, 2048, 2048). The saved first layer is (2048, 130) and the last is (35, 2048): representation 68, action 29, and sim context 33 in, prediction 35 out. <div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 3.2</a> · run: extracts/run_train.txt, GenCoord G1 on an RTX 5070 Ti · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/models.py#L46-L98">Dynamics · src/supermimic/models.py:46-98</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/models.py#L31-L43">build_mlp · src/supermimic/models.py:31-43</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L51-L79">SuperMimicRunnerCfg · src/supermimic/runners/supermimic_runner.py:51-79</a></div></td></tr><tr><td>MultiEncoderAE</td><td>9,839,797</td><td>Motion encoder first layer (2048, 640), latent 32, shared decoder last layer (29, 256). A velocity encoder with a 3-d input is in the checkpoint. The default slot mix trains motion only. <div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/models.py">code: models.py MultiEncoderAE</a> · run: extracts/run_train.txt, GenCoord G1 on an RTX 5070 Ti · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/models.py#L104-L160">MultiEncoderAE · src/supermimic/models.py:104-160</a></div></td></tr><tr><td>Critic</td><td>231,425</td><td>Default hidden widths (256, 128). The saved first layer is (256, 771) and the last is (1, 128). <div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py">code: SuperMimicRunnerCfg.critic_hidden_dims</a> · run: extracts/run_train.txt, GenCoord G1 on an RTX 5070 Ti · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L51-L79">SuperMimicRunnerCfg · src/supermimic/runners/supermimic_runner.py:51-79</a></div></td></tr></tbody></table>
+<h3>AST module outline</h3><p class='meta'>Class and constructor assignments parsed from the clone. Parameter totals come only from the fact above.</p><pre>AST outline of classes whose base names contain Module or PreTrainedModel.
+This is not a live torch.nn.Module print and does not count parameters.
+
+Dynamics  src/supermimic/models.py:46
+  bases: nn.Module
+    self.num_rep_state = representation.rep_state_dim
+    self.num_actions = num_actions
+    self.dt = representation.dt
+    self._apply_prediction = representation.apply_prediction
+    self.state_normalizer = _CudaGraphNormalization(self.num_rep_state)
+    self.action_normalizer = _CudaGraphNormalization(num_actions)
+    self.mlp = build_mlp(self.num_rep_state + num_actions + sim_ctx_dim, hidden_dims, output_dim=representation.prediction_dim)
+
+MultiEncoderAE  src/supermimic/models.py:104
+  bases: nn.Module
+    self.obs_dim = obs_dim
+    self.history_length = history_length
+    self.latent_dim = latent_dim
+    self.latent_bc_weight = latent_bc_weight
+    self.task_specs = task_specs
+    self._task_names = [ts.name for ts in task_specs]
+    self._anchor = self._task_names[0]
+    self._aux_loss = torch.zeros(0)
+    self.obs_normalizer = _CudaGraphNormalization(obs_dim)
+    self.goal_normalizers = nn.ModuleDict({ts.name: _CudaGraphNormalization(ts.goal_dim) for ts in task_specs})
+    self.encoders = nn.ModuleDict({ts.name: build_mlp(ts.goal_dim, hidden_dims, output_dim=latent_dim) for ts in task_specs})
+    self.decoder = build_mlp(latent_dim + history_length * obs_dim, hidden_dims, output_dim=action_dim)
+
+StateRepresentation  src/supermimic/representations.py:240
+  bases: nn.Module, ABC
+
+_SingleEncoderOnnx  src/supermimic/runners/exporter.py:72
+  bases: nn.Module
+    self.obs_normalizer = actor.obs_normalizer
+    self.goal_normalizer = actor.goal_normalizers[task_name]
+    self.encoder = actor.encoders[task_name]
+    self.decoder = actor.decoder
+    self.history_length = actor.history_length
+    self.hist_size = actor.history_length * actor.obs_dim
+    self.term_widths = term_widths
+    self.goal_dim = next((ts for ts in actor.task_specs if ts.name == task_name)).goal_dim
+    self.input_size = self.hist_size + self.goal_dim
+
+_MotionDeployWrapper  src/supermimic/runners/exporter.py:121
+  bases: nn.Module
+    self.actor = _SingleEncoderOnnx(actor, task_name, term_widths)
+    self._has_command = command_table is not None
+    self.obs_input_size = self.actor.hist_size if self._has_command else self.actor.input_size
+    self._time_step_total = int(self._joint_pos.shape[0])
+
+SimContext  src/supermimic/sim_context.py:156
+  bases: nn.Module
+    self.specs = list(specs)
+</pre>
+</section>
+<section class="section"><h2>Compute</h2>
+<table><tbody><tr><td>Reported result run</td><td>One H100 80 GB for 3 hours passes the released SONIC return. Two H100s for 9.8 hours reach zero failures on the 129,514-motion benchmark. SONIC is cited as 128 L40 GPUs for 168 hours.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 4.1</a></div></td></tr><tr><td>Code defaults</td><td>World-model Adam lr 2e-4, 10 batches of 2048 windows of 8 steps. Policy horizon 32, batch 4096, gamma 0.99, GAE lambda 0.95, 5 epochs of 4 minibatches.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/learners/wm_learner.py">code: WorldModelLearnerCfg and ActorCriticPolicyLearnerCfg</a></div></td></tr><tr><td>Local smoke run</td><td>RTX 5070 Ti, 32 envs, 8 iterations. One optimizer step with world-model batch 32 and policy batch 32. Loss/state 3.1136. Policy/reward -0.3996. The paper default is 4096 envs and world-model batch 2048.</td><td><span class="pill verified">verified</span> <div class="sources">run: extracts/run_train.txt, GenCoord G1 on an RTX 5070 Ti</div></td></tr></tbody></table>
+</section>
+<section class="section"><h2>Objectives</h2>
+<h3>World-model fit <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\mathcal{L}_{\mathrm{WM}}(\omega)=\mathbb{E}\sum_{j=1}^{k}\big[\lVert\hat{s}_j-s_j\rVert^2+(\hat{r}_j-r_j)^2+\lVert\hat{\bar{o}}_j-\bar{o}_j\rVert^2+\mathrm{BCE}(\hat{d}_j,d_j)\big]">\mathcal{L}_{\mathrm{WM}}(\omega)=\mathbb{E}\sum_{j=1}^{k}\big[\lVert\hat{s}_j-s_j\rVert^2+(\hat{r}_j-r_j)^2+\lVert\hat{\bar{o}}_j-\bar{o}_j\rVert^2+\mathrm{BCE}(\hat{d}_j,d_j)\big]</div>
+<p>The official loss that was opened is the state term: squared error per named channel group, weighted by Bryson&#x27;s rule 1/nominal^2, then averaged by channel count. Reward, observation, and termination heads are separate. The fit rolls the MLP forward on logged actions for k=8 and does not score the last unused action.</p>
+<ul><li><code>k</code> — Autoregressive window, default 8.</li><li><code>\xi</code> — Sim context held fixed over the window.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Eq. 1</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/learners/wm_learner.py#L169-L191">WorldModelLearner._compute_losses · src/supermimic/learners/wm_learner.py:169-191</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/learners/wm_learner.py#L145-L167">WorldModelLearner._rollout · src/supermimic/learners/wm_learner.py:145-167</a></div><h3>Imagined return <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\hat{J}(\theta)=\mathbb{E}\sum_{t=0}^{H-1}\gamma^t \hat{c}_t \hat{r}_{t+1}+\gamma^H \hat{c}_H V_\psi(\hat{s}_H,g_H,\xi)">\hat{J}(\theta)=\mathbb{E}\sum_{t=0}^{H-1}\gamma^t \hat{c}_t \hat{r}_{t+1}+\gamma^H \hat{c}_H V_\psi(\hat{s}_H,g_H,\xi)</div>
+<p>The world model is frozen. The actor minimizes the negative discounted return through 32 imagined steps, plus the encoder&#x27;s auxiliary latent-BC loss. Survival weight c multiplies through the predicted termination probability.</p>
+<ul><li><code>H</code> — Imagination horizon, default 32.</li><li><code>V_\psi</code> — Critic bootstrap at the end of the window.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Eq. 2</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/learners/policy_learner.py#L99-L126">BpttPolicyLearner._train_batch · src/supermimic/learners/policy_learner.py:99-126</a></div><h3>Critic regression <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\mathcal{L}_V(\psi)=\mathbb{E}\sum_t\lVert V_t-\hat{R}_t\rVert^2,\quad \hat{R}_t=\hat{r}_{t+1}+\gamma(1-\hat{d}_{t+1})\big[(1-\lambda)V_{t+1}+\lambda \hat{R}_{t+1}\big]">\mathcal{L}_V(\psi)=\mathbb{E}\sum_t\lVert V_t-\hat{R}_t\rVert^2,\quad \hat{R}_t=\hat{r}_{t+1}+\gamma(1-\hat{d}_{t+1})\big[(1-\lambda)V_{t+1}+\lambda \hat{R}_{t+1}\big]</div>
+<p>Targets are GAE returns on the imagined rollout, computed once and then fit for 5 epochs of 4 minibatches. The code clamps values by the maximum discounted step reward.</p>
+<ul><li><code>\lambda</code> — GAE lambda, default 0.95.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Eq. 3</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/learners/policy_learner.py#L164-L199">ActorCriticPolicyLearner · src/supermimic/learners/policy_learner.py:164-199</a></div>
+</section>
+<section class="section"><h2>Train</h2><div class="step"><strong>1.</strong> Reset the MuJoCo Warp env, build the representation and the dynamics MLP from the measured state size, and open a replay buffer. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L112-L166">build_world_model · src/supermimic/runners/supermimic_runner.py:112-166</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L322-L337">SuperMimicRunner._buffer_schema · src/supermimic/runners/supermimic_runner.py:322-337</a></div></div>
+<div class="step"><strong>2.</strong> Step the current actor in simulation and append state, noisy action, motion time, termination, and sim context. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L339-L376">SuperMimicRunner._step_and_store · src/supermimic/runners/supermimic_runner.py:339-376</a></div></div>
+<div class="step"><strong>3.</strong> Reweight motion-bin resets from the return sampler. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/reset_sampling.py#L147-L153">ReturnSampler._distribution · src/supermimic/runners/reset_sampling.py:147-153</a></div></div>
+<div class="step"><strong>4.</strong> Fit the world model on 8-step windows, then freeze it and take a BPTT step on 32-step imagined rollouts. Fit the critic on GAE targets from that rollout. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/runners/supermimic_runner.py#L574-L624">SuperMimicRunner.run · src/supermimic/runners/supermimic_runner.py:574-624</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/learners/wm_learner.py#L169-L191">WorldModelLearner._compute_losses · src/supermimic/learners/wm_learner.py:169-191</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/learners/policy_learner.py#L99-L126">BpttPolicyLearner._train_batch · src/supermimic/learners/policy_learner.py:99-126</a> · <a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/learners/policy_learner.py#L164-L199">ActorCriticPolicyLearner · src/supermimic/learners/policy_learner.py:164-199</a></div></div></section>
+<section class="section"><h2>Infer</h2><div class="step"><strong>1.</strong> Download the run&#x27;s world_model.pt and actor.pt and load them. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/scripts/play.py#L90-L121">play · src/supermimic/scripts/play.py:90-121</a></div></div>
+<div class="step"><strong>2.</strong> The viewer steps the env with the actor. The dynamics module is loaded for the visualization overlay. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/HybridRobotics/supermimic/blob/698ea39bc901d8fe733b3c8621df3199d241f7e4/src/supermimic/scripts/play.py#L90-L121">play · src/supermimic/scripts/play.py:90-121</a></div></div>
+<div class="step"><strong>3.</strong> Deployed control uses the actor on proprioception and the goal. The paper states the world model is not required on the robot. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2610.28480">pdf: Section 3, deployed actor uses noisy proprioception and a goal</a></div></div></section>
+<section class="section"><h2>Gaps</h2><ul class="gaps"><li>play.py did not roll out a policy. It exits unless --wandb-path names a run, and the README does not name one.</li><li>The W&amp;B motion registry was not downloaded. The training step used a 64-frame random G1 clip, so the 129,514-motion library is still unread.</li><li>The smoke run used 32 environments and batch 32. The paper&#x27;s reported run is one H100 for 3 hours, and the code default is 4096 environments with world-model batch 2048.</li><li>The 6–8 GB local feasibility note is the planning label. This pass did not record peak VRAM.</li><li>No example clip aligns a sim frame with the trained actor&#x27;s 29-d action and the logged next state.</li></ul></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script>
+document.querySelectorAll(".formula").forEach((el) => {
+  if (window.katex) {
+    katex.render(el.dataset.latex, el, {displayMode: true, throwOnError: false});
+  }
+});
+</script>
+</body>
+</html>

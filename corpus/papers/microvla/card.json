@@ -1,0 +1,665 @@
+{
+  "id": "microvla",
+  "identity": {
+    "title": "microVLA: minimal VLA training and inference on a 4 GB laptop GPU",
+    "authors": [
+      "KhushiJ2911"
+    ],
+    "venue": "GitHub repository",
+    "year": 2026,
+    "arxiv": null,
+    "pdf_url": null,
+    "pdf_path": null,
+    "project_url": "https://github.com/KhushiJ2911/microVLA",
+    "repo_url": "https://github.com/KhushiJ2911/microVLA",
+    "repo_commit": "efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd",
+    "repo_role": "unofficial",
+    "repo_note": "Cloned at the commit above. This is the repository requested for the MicroVLA row. Its README describes a 10.5M pi0.5-style model. It does not implement the 12.37M Theia + POTION checkpoint.",
+    "distinct_from": [
+      {
+        "name": "Ngseo/microvla-seqgru-libero",
+        "url": "https://huggingface.co/Ngseo/microvla-seqgru-libero",
+        "why": "A different 12.37M LIBERO policy: Theia-tiny vision, a frozen POTION text table, a GRU readout, and an L1 chunk head. The RSS workshop title uses the same MicroVLA name."
+      },
+      {
+        "name": "varununayak/microvla",
+        "url": "https://github.com/varununayak/microvla",
+        "why": "A 117,248-parameter RT-2 toy on a synthetic 32x32 reach task."
+      }
+    ]
+  },
+  "summary": "The cloned repository trains one small pi0.5-style policy from scratch on LIBERO-Spatial. A shared 4-layer ViT embeds two cameras, instruction words and discretized state form the prefix, and a narrower action expert predicts a 16-step chunk with flow matching. Training first matches ViT patches to frozen SigLIP features, then runs the flow-matching loss for 8,000 steps. The README reports 10.5M parameters and 270/300 successes on LIBERO-Spatial. The local 12.4M landscape note matches a different checkpoint, listed under Not the same work.",
+  "landscape": {
+    "paradigm": "Local note: distilled vision, static text lookup, and a chunk head. This repository is a pi0.5-style ViT plus flow-matching action expert.",
+    "bottleneck": "Embedded controller memory and latency. The README targets a 4 GB laptop GPU.",
+    "hardware_fit": "Local note: ideal baseline, about 2\u20133 GB VRAM. The README's small-model timing is 79 ms per chunk."
+  },
+  "data": {
+    "note": "LIBERO parquets were not downloaded. Shapes are the cache arrays written by preprocess. Volumes are the README's counts for that cache.",
+    "datasets": [
+      {
+        "name": "LIBERO-Spatial",
+        "role": "train and closed-loop eval",
+        "volume": "README: 432 demos and 52,970 frames from HuggingFaceVLA/libero, pinned revision 86958911c0f959db2bbbdb107eb3e17c5f9c798e. Eval default is 10 initial states per task, replan every 5 actions, 220-step limit.",
+        "sampling": "A batch draws random frame indices from the train split. The 16 future actions are clamped to the last frame of the same episode. Validation episodes are held out in the cache manifest.",
+        "augmentation": "Random replicate-pad shift of 4 pixels on every step. Color jitter is off unless --color-jitter is set. Distillation upsamples the image 2x for SigLIP.",
+        "tier": "code",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "readme",
+            "locator": "README Details: 432 demos, 52,970 frames",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+          }
+        ],
+        "code": [
+          {
+            "path": "train.py",
+            "start": 333,
+            "end": 336,
+            "symbol": "array_specs",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L333-L336"
+          },
+          {
+            "path": "train.py",
+            "start": 572,
+            "end": 586,
+            "symbol": "Batches.batch",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L572-L586"
+          }
+        ],
+        "fields": [
+          {
+            "name": "images",
+            "dtype": "uint8",
+            "shape": "(N, 2, 3, 96, 96)",
+            "note": "observation.images.image and image2. Default --image-size 96. Scaled by 127.5 into [-1, 1] in the ViT."
+          },
+          {
+            "name": "state",
+            "dtype": "float32",
+            "shape": "(N, 8)",
+            "note": "Normalized, then each value is discretized into 256 bins."
+          },
+          {
+            "name": "actions",
+            "dtype": "float32",
+            "shape": "(N, 7)",
+            "note": "A training target is 16 future steps, clamped at the episode end."
+          },
+          {
+            "name": "instruction",
+            "dtype": "int64 token ids",
+            "shape": "(B, length)",
+            "note": "Whitespace tokenizer built from the task strings. 0 is pad."
+          }
+        ],
+        "stream_kind": "recorded",
+        "feeds_gradient": true,
+        "recorded": {
+          "origin": "sim_teleop",
+          "dataset_name": "LIBERO-Spatial",
+          "success_filter": "Expert demonstrations from HuggingFaceVLA/libero.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "readme",
+              "locator": "README Details: 432 demos, 52,970 frames",
+              "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+            }
+          ]
+        },
+        "golden": {
+          "kind": "action_chunk",
+          "description": "The target is 16 future 7-d actions from the demonstration, clamped at the episode end.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "readme",
+              "locator": "README Details: 432 demos, 52,970 frames",
+              "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+            }
+          ]
+        },
+        "example": {
+          "status": "missing",
+          "view": "none",
+          "fps": null,
+          "num_frames": null,
+          "video_path": null,
+          "sidecar_path": null,
+          "shows": [
+            "observation",
+            "trained_checkpoint_action",
+            "golden"
+          ],
+          "trained_checkpoint": {
+            "action_name": "actions",
+            "dim": 7,
+            "checkpoint_path": null,
+            "note": "No clip aligns a LIBERO frame with a trained MicroVLA checkpoint's 7-d action and the logged 16-step action chunk."
+          },
+          "sources": []
+        }
+      }
+    ],
+    "training_provenance": {
+      "mode": "recorded_success",
+      "summary": "Training reads fixed LIBERO demonstration frames and 16-step action chunks. The learned policy does not write the training set.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "readme",
+          "locator": "README Details: 432 demos, 52,970 frames",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+        }
+      ]
+    }
+  },
+  "model": {
+    "overview": "MicroVLA is a joint prefix and action-expert transformer. Vision is a ViT of 4 layers at width 192 with 8-pixel patches, shared by both cameras plus a camera embedding. Six joint blocks run a width-256 prefix and a width-128 action expert in the same attention. The LIBERO config sets 2 cameras, state 8, action 7, and horizon 16. Class defaults in Config are the toy sizes and are not the LIBERO run.",
+    "total_params": {
+      "name": "README parameter split",
+      "value": "10.5M total: vision 1.9M, prefix 5.7M, action expert 2.3M. parameter_counts() was not executed in this pass.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "readme",
+          "locator": "README model table",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+        }
+      ]
+    },
+    "modules": [
+      {
+        "name": "Vision",
+        "params": "1.9M",
+        "detail": "Conv patch embed, 4 pre-norm TransformerEncoder layers, width 192, then a linear map to the prefix width.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "readme",
+            "locator": "README vision row",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+          }
+        ],
+        "code": [
+          {
+            "path": "train.py",
+            "start": 96,
+            "end": 114,
+            "symbol": "Vision",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L96-L114"
+          }
+        ]
+      },
+      {
+        "name": "JointBlock",
+        "params": "prefix 5.7M, expert 2.3M",
+        "detail": "Six layers. Prefix width 256 with GeGLU MLP 1024. Expert width 128 with adaRMSNorm on the flow time. 4 query heads and 1 KV head, RoPE.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "readme",
+            "locator": "README prefix and expert rows",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+          }
+        ],
+        "code": [
+          {
+            "path": "train.py",
+            "start": 159,
+            "end": 183,
+            "symbol": "JointBlock",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L159-L183"
+          }
+        ]
+      },
+      {
+        "name": "MicroVLA",
+        "params": "10.5M",
+        "detail": "Embeds images, state bins, and instruction tokens, then denoises the action chunk. sample() takes Euler steps; loss() is the flow-matching MSE.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "code",
+            "locator": "train.py MicroVLA",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L186-L266"
+          }
+        ],
+        "code": [
+          {
+            "path": "train.py",
+            "start": 186,
+            "end": 266,
+            "symbol": "MicroVLA",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L186-L266"
+          }
+        ]
+      }
+    ],
+    "runtime": "The repository was cloned and indexed. MicroVLA was not instantiated, so extracts/model_outline.txt is the AST listing and the 10.5M figure is the README's, not a live parameter_counts() print."
+  },
+  "compute": [
+    {
+      "name": "Training defaults",
+      "value": "1,000 distillation steps at batch 16 and lr 1e-3, then 8,000 flow-matching steps at batch 32 and lr 3e-4. AdamW, weight decay 0.01, grad clip 1, 100-step warmup and cosine decay. CUDA autocast is bf16.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "code",
+          "locator": "train.py main defaults and the step loop",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L739-L856"
+        }
+      ]
+    },
+    {
+      "name": "Reported small-model result",
+      "value": "README: LIBERO-Spatial 270/300 (90%), mean 79 ms per action chunk. The same README times pi0.5 NF4 on an RTX 3050 4 GB.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "readme",
+          "locator": "README LIBERO-Spatial results table",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+        }
+      ]
+    }
+  ],
+  "objectives": [
+    {
+      "id": "flow",
+      "name": "Flow-matching loss",
+      "latex": "\\mathcal{L}=\\lVert v_\\theta((1-t)a+t\\epsilon,\\ t\\mid \\text{images, instruction, state})-(\\epsilon-a)\\rVert^2",
+      "explanation": "The code draws t from the inverse CDF of Beta(1.5, 1), scaled into (0.001, 1). The noisy action is t * noise + (1 - t) * action. The network regresses noise minus the clean action. The README writes the same path with the opposite interpolation symbol; the linked function is the one that trains.",
+      "symbols": [
+        {
+          "sym": "a",
+          "meaning": "Normalized action chunk, shape (B, 16, 7)."
+        },
+        {
+          "sym": "\\epsilon",
+          "meaning": "Gaussian noise of the same shape."
+        },
+        {
+          "sym": "t",
+          "meaning": "Per-sample flow time."
+        }
+      ],
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "readme",
+          "locator": "README flow-matching display equation",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+        }
+      ],
+      "code": [
+        {
+          "path": "train.py",
+          "start": 260,
+          "end": 266,
+          "symbol": "MicroVLA.loss",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L260-L266"
+        }
+      ]
+    },
+    {
+      "id": "distill",
+      "name": "SigLIP patch distillation",
+      "latex": "\\mathcal{L}_{\\mathrm{distill}}=(1-\\cos(W v, s))+\\lVert W v-s\\rVert^2",
+      "explanation": "For 1,000 steps only the ViT and a linear head train. One camera is chosen at random. Its image is upsampled 2x and passed through a frozen SigLIP-B/16. The loss is one minus cosine similarity plus MSE, after layer-norm on the teacher tokens.",
+      "symbols": [
+        {
+          "sym": "v",
+          "meaning": "ViT patch tokens."
+        },
+        {
+          "sym": "s",
+          "meaning": "Frozen SigLIP last hidden state."
+        },
+        {
+          "sym": "W",
+          "meaning": "Linear head from prefix width to the SigLIP width."
+        }
+      ],
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "readme",
+          "locator": "README distillation paragraph",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+        }
+      ],
+      "code": [
+        {
+          "path": "train.py",
+          "start": 835,
+          "end": 849,
+          "symbol": "distillation step",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L835-L849"
+        }
+      ]
+    }
+  ],
+  "procedures": {
+    "train": [
+      {
+        "text": "Stream or read HuggingFaceVLA/libero and write a cache of two camera images, 8-d state, and 7-d actions.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "train.py",
+            "start": 399,
+            "end": 411,
+            "symbol": "preprocess",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L399-L411"
+          }
+        ]
+      },
+      {
+        "text": "Build MicroVLA with 2 cameras, 8-d state, 7-d actions, and the requested horizon, default 16.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "train.py",
+            "start": 775,
+            "end": 787,
+            "symbol": "main config",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L775-L787"
+          }
+        ]
+      },
+      {
+        "text": "For 1,000 steps, distill a random camera's ViT features onto frozen SigLIP with cosine plus MSE.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "train.py",
+            "start": 835,
+            "end": 849,
+            "symbol": "distillation step",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L835-L849"
+          }
+        ]
+      },
+      {
+        "text": "For 8,000 steps, sample a batch, shift-augment the images, and step AdamW on MicroVLA.loss.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "train.py",
+            "start": 828,
+            "end": 856,
+            "symbol": "training step",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L828-L856"
+          }
+        ]
+      }
+    ],
+    "infer": [
+      {
+        "text": "Load the checkpoint into TinyPolicy, resize both cameras, normalize state, and tokenize the instruction.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "train.py",
+            "start": 687,
+            "end": 711,
+            "symbol": "TinyPolicy.prepare",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L687-L711"
+          }
+        ]
+      },
+      {
+        "text": "Cache the prefix, start the chunk from noise, and take Euler steps of the velocity. Default sample() uses 10 steps.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "train.py",
+            "start": 247,
+            "end": 258,
+            "symbol": "MicroVLA.sample",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L247-L258"
+          }
+        ]
+      },
+      {
+        "text": "Unnormalize and clamp actions to [-1, 1]. Closed-loop eval executes the first 5 of the chunk, then replans.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "train.py",
+            "start": 720,
+            "end": 729,
+            "symbol": "TinyPolicy.select_action",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L720-L729"
+          },
+          {
+            "path": "bench/eval_libero.py",
+            "start": 225,
+            "end": 228,
+            "symbol": "replan default",
+            "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/bench/eval_libero.py#L225-L228"
+          }
+        ]
+      }
+    ]
+  },
+  "task": {
+    "embodiment": "Franka arm in LIBERO-Spatial.",
+    "action": "7-d normalized action. The training chunk is 16 steps.",
+    "horizon": "Closed-loop eval executes 5 actions, then replans. The spatial suite limit in the eval script is 220 steps.",
+    "contact": "Images and an 8-d state. No wrench or torque input.",
+    "latency": "README: 79 ms per action chunk for the 10.5M model.",
+    "data": "README: 432 demos and 52,970 frames from LIBERO-Spatial. Two cameras at 96 px.",
+    "status": "verified",
+    "sources": [
+      {
+        "kind": "readme",
+        "locator": "README LIBERO-Spatial section",
+        "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+      },
+      {
+        "kind": "code",
+        "locator": "train.py LIBERO config and eval replan default",
+        "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L776"
+      }
+    ]
+  },
+  "parts": [
+    {
+      "slot": "observation_encoder",
+      "choice": "Shared 4-layer ViT, width 192, patch 8, then a linear map into the prefix.",
+      "inputs": "Two uint8 cameras, default 96 px, scaled into [-1, 1].",
+      "outputs": "Patch tokens, plus a learned camera embedding when two cameras are used.",
+      "frozen": "SigLIP-B/16 is frozen and used only as the distillation teacher.",
+      "trained": "The ViT, including the patch projection.",
+      "breaks_if": "The image side is not a multiple of 8, or the camera count differs from the two-camera LIBERO config.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "readme",
+          "locator": "README vision row",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      },
+      "code": [
+        {
+          "path": "train.py",
+          "start": 96,
+          "end": 114,
+          "symbol": "Vision",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L96-L114"
+        }
+      ]
+    },
+    {
+      "slot": "language_or_goal",
+      "choice": "Whitespace tokenizer over the task string, embedded with the discretized state.",
+      "inputs": "Token ids. Pad id 0 is dropped from the attention mask.",
+      "outputs": "Prefix tokens concatenated after the image tokens.",
+      "frozen": "Nothing in this slot stays frozen during the action-training phase.",
+      "trained": "The token embedding.",
+      "breaks_if": "The instruction vocabulary differs from the cache tokenizer built for these task strings.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "code",
+          "locator": "train.py embed_prefix",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L201-L214"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      },
+      "code": [
+        {
+          "path": "train.py",
+          "start": 201,
+          "end": 214,
+          "symbol": "MicroVLA.embed_prefix",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L201-L214"
+        }
+      ]
+    },
+    {
+      "slot": "memory",
+      "choice": "A prefix KV cache for one chunk. No state is carried into the next replan.",
+      "inputs": "Cached prefix keys and values, the noisy action chunk, and the flow time.",
+      "outputs": "A 16-step action velocity. The cache is rebuilt at the next observation.",
+      "frozen": "The cache is an inference reuse of the prefix, not a learned memory module.",
+      "trained": "Nothing extra. The cache is computed from the current observation.",
+      "breaks_if": "The task needs information from earlier than the current cameras, state, and instruction.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "code",
+          "locator": "train.py prefix_cache and sample",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L230-L258"
+        }
+      ],
+      "evidence": {
+        "claim": "No long-horizon memory comparison was reported for this repository.",
+        "status": "missing",
+        "sources": []
+      },
+      "code": [
+        {
+          "path": "train.py",
+          "start": 230,
+          "end": 237,
+          "symbol": "MicroVLA.prefix_cache",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L230-L237"
+        }
+      ]
+    },
+    {
+      "slot": "action_representation",
+      "choice": "Flow matching over a 16 by 7 chunk. Euler sampling defaults to 10 steps.",
+      "inputs": "Noisy actions, flow time, and the prefix.",
+      "outputs": "Velocity with the same shape as the chunk.",
+      "frozen": "Nothing in the action expert stays frozen during the train phase.",
+      "trained": "The width-128 action expert.",
+      "breaks_if": "The action is not a 7-d chunk, or the horizon changes without retraining.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "readme",
+          "locator": "README flow-matching equation",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      },
+      "code": [
+        {
+          "path": "train.py",
+          "start": 247,
+          "end": 266,
+          "symbol": "MicroVLA.sample and loss",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L247-L266"
+        }
+      ]
+    },
+    {
+      "slot": "controller",
+      "choice": "Unnormalize the chunk, clamp to [-1, 1], and execute the first 5 actions.",
+      "inputs": "The sampled 16 by 7 chunk and the dataset action statistics.",
+      "outputs": "Seven robot commands per control step.",
+      "frozen": "The policy weights stay fixed at eval.",
+      "trained": "No separate controller is trained.",
+      "breaks_if": "The robot does not accept the 7-d normalized LIBERO action.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "code",
+          "locator": "bench/eval_libero.py replan default",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/bench/eval_libero.py#L225-L228"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      },
+      "code": [
+        {
+          "path": "train.py",
+          "start": 720,
+          "end": 729,
+          "symbol": "TinyPolicy.select_action",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L720-L729"
+        }
+      ]
+    },
+    {
+      "slot": "objective",
+      "choice": "1,000 steps of SigLIP cosine-plus-MSE, then 8,000 steps of flow-matching MSE.",
+      "inputs": "Images, state, instruction, and the action chunk. Distill uses one random camera.",
+      "outputs": "A scalar loss.",
+      "frozen": "SigLIP is frozen. During distillation only the ViT and a linear head train.",
+      "trained": "The full MicroVLA during the flow-matching phase.",
+      "breaks_if": "The run skips distillation or replaces the flow target noise minus action.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "code",
+          "locator": "train.py distillation and flow steps",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L835-L849"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      },
+      "code": [
+        {
+          "path": "train.py",
+          "start": 260,
+          "end": 266,
+          "symbol": "MicroVLA.loss",
+          "url": "https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L260-L266"
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "No PDF is in this repository. The RSS workshop paper that shares the MicroVLA name was not downloaded.",
+    "parameter_counts() was not run, so the 1.9M / 5.7M / 2.3M split is the README figure.",
+    "The LIBERO parquet files were not opened, so the field table is the cache schema rather than a measured sample.",
+    "infer.py benchmarks a separate pi0.5 checkpoint on a 4 GB GPU. Those timings are not the 10.5M model's forward pass.",
+    "No example clip aligns a LIBERO frame with a trained MicroVLA checkpoint's 7-d action and the logged action chunk."
+  ]
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper cards</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --ink: #1c1915;
+  --muted: #5e584f;
+  --line: #ddd6c8;
+  --card: #fffdf8;
+  --accent: #0f6e56;
+  --warn: #8a4b08;
+  --bad: #8d2f2f;
+  --code: #efeae0;
+  --link: #0b5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161410;
+    --ink: #f3efe6;
+    --muted: #b7b0a4;
+    --line: #3a342c;
+    --card: #221e19;
+    --accent: #7dcea0;
+    --warn: #e0b15a;
+    --bad: #f0a0a0;
+    --code: #2c271f;
+    --link: #9dc7ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+}
+a { color: var(--link); }
+header, main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+main.wide { width: min(1440px, calc(100% - 24px)); }
+.matrix { overflow-x: auto; }
+.matrix td, .matrix th { min-width: 170px; }
+header { padding: 28px 0 8px; }
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 1.25rem; margin: 28px 0 8px; }
+.lede, .meta { color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.nav a, .pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--card);
+  text-decoration: none;
+  font: 13px/1.6 ui-sans-serif, system-ui, sans-serif;
+}
+.pill.verified { color: var(--accent); }
+.pill.inferred { color: var(--warn); }
+.pill.missing, .pill.none { color: var(--bad); }
+.section, a.paper-row {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+a.paper-row strong { color: var(--link); }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+video { width: 100%; max-width: 960px; background: #000; }
+pre {
+  background: var(--code);
+  padding: 12px;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 8px;
+}
+.formula { overflow-x: auto; padding: 8px 0; }
+.step { margin: 0 0 10px; }
+.sources { color: var(--muted); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+ul.gaps { margin-top: 0; }
+</style>
+</head>
+<body>
+<header><h1>Paper cards</h1>
+<p class="lede">Structured reading notes for the CoRL 2026 frontier list. A number is on the page only when its card names a source. Cloned code is linked at the pinned commit.</p>
+<p class="nav"><a href="parts.html">Parts comparison</a></p>
+</header>
+<main><a class="paper-row" href="papers/compvla.html">
+<strong>CompVLA: A Variable Compliance Vision-Language-Action Model for Contact-rich Manipulation</strong><br>
+<span class="meta">Variable-compliance VLA. The local note says Kp and Kd plus actions. The paper&#x27;s learned compliance outputs are diagonal stiffness and virtual displacement.</span><br>
+<span class="pill none">none</span> <span class="meta">Not stated in the sections opened for this card. · 5 gaps · Local note: ideal stack-on, about 3–4 GB VRAM</span>
+</a><a class="paper-row" href="papers/dreamzero.html">
+<strong>World Action Models are Zero-shot Policies</strong><br>
+<span class="meta">Joint video-action diffusion, a 14B world-action model</span><br>
+<span class="pill official">official</span> <span class="meta">14B for the Wan2.1-I2V-14B runs. A 5B Wan ablation is also reported. Added parameters are the state and action encoder/decoder. · 5 gaps · Local note: not recommended, about 40–80+ GB. The paper&#x27;s speed table uses H100 and GB200.</span>
+</a><a class="paper-row" href="papers/microvla.html">
+<strong>microVLA: minimal VLA training and inference on a 4 GB laptop GPU</strong><br>
+<span class="meta">Local note: distilled vision, static text lookup, and a chunk head. This repository is a pi0.5-style ViT plus flow-matching action expert.</span><br>
+<span class="pill unofficial">unofficial</span> <span class="meta">10.5M total: vision 1.9M, prefix 5.7M, action expert 2.3M. parameter_counts() was not executed in this pass. · 5 gaps · Local note: ideal baseline, about 2–3 GB VRAM. The README&#x27;s small-model timing is 79 ms per chunk.</span>
+</a><a class="paper-row" href="papers/pi07.html">
+<strong>pi0.7: a Steerable Generalist Robotic Foundation Model with Emergent Capabilities</strong><br>
+<span class="meta">Steerable VLA plus a subgoal world model</span><br>
+<span class="pill none">none</span> <span class="meta">About 5B: Gemma3 4B VLM (400M of that is the vision encoder) and an 860M action expert. The subgoal world model is a separate BAGEL 14B. · 5 gaps · Local note: scaled-down expert via cached VLM features. The paper&#x27;s full model is about 5B, and the subgoal model is a separate 14B.</span>
+</a><a class="paper-row" href="papers/robottt.html">
+<strong>RoboTTT: Context Scaling for Robot Policies</strong><br>
+<span class="meta">Test-time training with fast weights</span><br>
+<span class="pill unofficial">unofficial</span> <span class="meta">Original DiT 538M. Each TTT layer adds about 10M. DiT plus TTT is 690M. The Eagle VLM is extra and its parameter count was not extracted. · 4 gaps · Local note: ideal stack-on, about 4–5 GB VRAM. The paper&#x27;s pretraining used 16 GB200 GPUs.</span>
+</a><a class="paper-row" href="papers/supermimic.html">
+<strong>SuperMimic: Scaling Humanoid Whole-Body Control with One Differentiable World Model</strong><br>
+<span class="meta">Differentiable world model and short-horizon BPTT</span><br>
+<span class="pill official">official</span> <span class="meta">18,816,634 on the GenCoord G1 run: dynamics 8,745,346, sim context 66, actor 9,839,797, critic 231,425. · 5 gaps · Local note: ideal online RL, about 6–8 GB VRAM. The paper&#x27;s reported runs use H100 80 GB.</span>
+</a></main>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script>
+document.querySelectorAll(".formula").forEach((el) => {
+  if (window.katex) {
+    katex.render(el.dataset.latex, el, {displayMode: true, throwOnError: false});
+  }
+});
+</script>
+</body>
+</html>

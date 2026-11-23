@@ -1,0 +1,576 @@
+{
+  "id": "compvla",
+  "identity": {
+    "title": "CompVLA: A Variable Compliance Vision-Language-Action Model for Contact-rich Manipulation",
+    "authors": [
+      "Jongmin Kim",
+      "Junsu Ha",
+      "Che-Sang Park",
+      "Minchang Song",
+      "Hyeokju Jeong",
+      "Himchan Hwang",
+      "Jianlong Fu",
+      "Frank C. Park"
+    ],
+    "venue": "CoRL 2026",
+    "year": 2026,
+    "arxiv": "2609.23614",
+    "pdf_url": "https://arxiv.org/pdf/2609.23614",
+    "pdf_path": "paper.pdf",
+    "project_url": "https://compvla.github.io/",
+    "repo_url": null,
+    "repo_commit": null,
+    "repo_role": "none",
+    "repo_note": "The project page and the paper describe a released demonstration dataset. No public training repository was found in this pass."
+  },
+  "summary": "CompVLA adds a second flow-matching expert to a pi0-style VLA. The action expert predicts a TCP twist and gripper command. The compliance expert, conditioned on that trajectory, predicts a diagonal stiffness and a virtual displacement. A geometric impedance controller turns those into directional compliance and a pressing force. The paper learns stiffness Kd, not a proportional gain Kp. The local landscape row's Kp label is therefore the planning note, not the paper's output. No code was linked because no repository was released in the sources opened here.",
+  "landscape": {
+    "paradigm": "Variable-compliance VLA. The local note says Kp and Kd plus actions. The paper's learned compliance outputs are diagonal stiffness and virtual displacement.",
+    "bottleneck": "Rigid position control on contact-rich tasks",
+    "hardware_fit": "Local note: ideal stack-on, about 3\u20134 GB VRAM"
+  },
+  "data": {
+    "note": "Episode files were not downloaded. The field list is the paper's and the project page's description of the teleop logs.",
+    "datasets": [
+      {
+        "name": "CompVLA contact-rich teleop set",
+        "role": "train",
+        "volume": "The paper says 100 demonstrations per task. The project page says 107\u2013115 episodes per task. Tasks used in the main table are Erase Whiteboard, Pivot, Cup Dispense, and Pick and Place. Eval is 20 episodes per task, three runs for the VLA methods.",
+        "sampling": "Teleoperation with a force-aware leader-follower. Stiffness and virtual-displacement labels are derived from recorded interaction wrench. Force/torque is not a policy input at inference.",
+        "augmentation": "Not stated in the training appendix section used here.",
+        "tier": "paper",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "arXiv HTML, experiments: 100 demonstrations per task; 20-episode evals",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          },
+          {
+            "kind": "web",
+            "locator": "Project page, Contact-rich Demonstration Dataset",
+            "url": "https://compvla.github.io/",
+            "quote": "107\u2013115 episodes per task; three cameras, joints, torques, wrist wrench; sync at 10 Hz"
+          }
+        ],
+        "fields": [
+          {
+            "name": "images",
+            "dtype": "RGB",
+            "shape": "3 RealSense views",
+            "note": "Franka Research 3"
+          },
+          {
+            "name": "joint_position",
+            "dtype": "float",
+            "shape": "per joint, native rate then 10 Hz",
+            "note": "Project page"
+          },
+          {
+            "name": "joint_torque",
+            "dtype": "float",
+            "shape": "per joint",
+            "note": "Logged, not required at inference"
+          },
+          {
+            "name": "wrist_wrench",
+            "dtype": "float",
+            "shape": "6",
+            "note": "Training labels only"
+          },
+          {
+            "name": "motion token",
+            "dtype": "float",
+            "shape": "T=25 by (6 twist + gripper + 6 stiffness + 6 virtual displacement)",
+            "note": "Eq. 6 and the action-token paragraph"
+          }
+        ],
+        "stream_kind": "recorded",
+        "feeds_gradient": true,
+        "recorded": {
+          "origin": "real_robot",
+          "dataset_name": "CompVLA contact-rich teleop set",
+          "success_filter": "Teleoperated demonstrations, about 100 episodes per task.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "pdf",
+              "locator": "arXiv HTML, experiments: 100 demonstrations per task; 20-episode evals",
+              "url": "https://arxiv.org/pdf/2609.23614"
+            },
+            {
+              "kind": "web",
+              "locator": "Project page, Contact-rich Demonstration Dataset",
+              "url": "https://compvla.github.io/",
+              "quote": "107\u2013115 episodes per task; three cameras, joints, torques, wrist wrench; sync at 10 Hz"
+            }
+          ]
+        },
+        "golden": {
+          "kind": "action_chunk",
+          "description": "The motion token of length 25 holds TCP twist, gripper, diagonal stiffness, and virtual displacement derived from the demonstration.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "pdf",
+              "locator": "arXiv HTML, experiments: 100 demonstrations per task; 20-episode evals",
+              "url": "https://arxiv.org/pdf/2609.23614"
+            },
+            {
+              "kind": "web",
+              "locator": "Project page, Contact-rich Demonstration Dataset",
+              "url": "https://compvla.github.io/",
+              "quote": "107\u2013115 episodes per task; three cameras, joints, torques, wrist wrench; sync at 10 Hz"
+            }
+          ]
+        },
+        "example": {
+          "status": "missing",
+          "view": "none",
+          "fps": null,
+          "num_frames": null,
+          "video_path": null,
+          "sidecar_path": null,
+          "shows": [
+            "observation",
+            "trained_checkpoint_action",
+            "golden"
+          ],
+          "trained_checkpoint": {
+            "action_name": "motion token",
+            "dim": null,
+            "checkpoint_path": null,
+            "note": "No clip aligns a teleop frame with a trained CompVLA checkpoint's action and the logged motion token."
+          },
+          "sources": []
+        }
+      }
+    ],
+    "training_provenance": {
+      "mode": "recorded_success",
+      "summary": "Training uses force-aware teleoperated demonstrations. Stiffness and virtual-displacement labels are derived from the recorded wrench.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "arXiv HTML, experiments: 100 demonstrations per task; 20-episode evals",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        },
+        {
+          "kind": "web",
+          "locator": "Project page, Contact-rich Demonstration Dataset",
+          "url": "https://compvla.github.io/",
+          "quote": "107\u2013115 episodes per task; three cameras, joints, torques, wrist wrench; sync at 10 Hz"
+        }
+      ]
+    }
+  },
+  "model": {
+    "overview": "A pi0 backbone (PaliGemma VLM plus an action expert) gains a compliance expert initialized by copying the action expert. Both experts attend to the VLM with a blockwise causal mask. Weights start from lerobot/pi0_base. The compliance expert also sees a 13-d relative-pose condition packed into the noisy compliance input.",
+    "total_params": {
+      "name": "Parameter count",
+      "value": "Not stated in the sections opened for this card.",
+      "status": "missing",
+      "sources": []
+    },
+    "modules": [
+      {
+        "name": "VLM backbone",
+        "params": null,
+        "detail": "pi0 / PaliGemma backbone, initialized from lerobot/pi0_base.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A, Training",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          },
+          {
+            "kind": "web",
+            "locator": "Project page, Dual-expert Architecture",
+            "url": "https://compvla.github.io/"
+          }
+        ]
+      },
+      {
+        "name": "Action expert",
+        "params": null,
+        "detail": "Denoises TCP twist and gripper over horizon T=25. Inference uses 10 denoising steps.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A, action expert paragraph",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      },
+      {
+        "name": "Compliance expert",
+        "params": null,
+        "detail": "Same block structure, conditioned on relative TCP trajectory Z_t. Outputs k_t and d_t.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A, eq. 8 and compliance expert",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      },
+      {
+        "name": "Geometric impedance controller",
+        "params": null,
+        "detail": "Virtual target is the reference pose deformed by d. Only Kd is learned.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A.2, eq. 13; main text on learning only Kd",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      }
+    ],
+    "runtime": "No repository was cloned, so there is no AST outline and no torch print."
+  },
+  "compute": [
+    {
+      "name": "Optimiser",
+      "value": "100,000 steps, batch 32, bfloat16, gradient checkpointing, AdamW peak 2.5e-5, 1,000-step warmup, decay to 2.5e-6 over 30,000 steps.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Appendix A, Training",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        }
+      ]
+    },
+    {
+      "name": "Inference denoising",
+      "value": "10 steps from noise for the action expert.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Appendix A, action expert",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        }
+      ]
+    },
+    {
+      "name": "GPU model and wall time",
+      "value": "Not stated in that training paragraph.",
+      "status": "missing",
+      "sources": []
+    }
+  ],
+  "objectives": [
+    {
+      "id": "path",
+      "name": "Noisy target path",
+      "latex": "\\tilde{Y}_t(\\tau)=\\tau\\epsilon+(1-\\tau)Y_t",
+      "explanation": "Tau 1 is noise and tau 0 is the data. Because inference integrates from 1 to 0, the regression target is epsilon minus Y.",
+      "symbols": [
+        {
+          "sym": "Y_t",
+          "meaning": "Clean action sequence or clean compliance sequence."
+        },
+        {
+          "sym": "\\epsilon",
+          "meaning": "Gaussian noise of the same shape."
+        },
+        {
+          "sym": "\\tau",
+          "meaning": "Flow time, uniform on (0, 1)."
+        }
+      ],
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Appendix A, eq. 9",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        }
+      ]
+    },
+    {
+      "id": "losses",
+      "name": "Joint flow-matching loss",
+      "latex": "\\mathcal{L}=\\mathcal{L}_a+\\mathcal{L}_c,\\quad \\mathcal{L}_a=\\mathbb{E}\\lVert v^a_\\theta(\\tilde{Y}^a,\\tau\\mid O_t,l)-(\\epsilon^a-Y^a)\\rVert_2^2,\\quad \\mathcal{L}_c=\\mathbb{E}\\lVert v^c_\\theta(\\tilde{Y}^c,\\tau\\mid O_t,l,Z_t)-(\\epsilon^c-Y^c)\\rVert_2^2",
+      "explanation": "The action expert is conditioned on the observation and language. The compliance expert is also conditioned on the relative TCP trajectory. During training that trajectory is the demonstration. During inference it is the action expert's prediction. Joint angles are an auxiliary training target and are dropped at inference.",
+      "symbols": [
+        {
+          "sym": "Y^a",
+          "meaning": "TCP twists and gripper commands over the chunk."
+        },
+        {
+          "sym": "Y^c",
+          "meaning": "Diagonal stiffness and virtual displacement over the chunk."
+        },
+        {
+          "sym": "Z_t",
+          "meaning": "Relative TCP poses and gripper commands, eq. 8."
+        }
+      ],
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Appendix A, eq. 10\u201312",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        }
+      ]
+    }
+  ],
+  "procedures": {
+    "train": [
+      {
+        "text": "Initialize from pi0_base and copy the action expert into the compliance expert.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A, Training",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      },
+      {
+        "text": "Build stiffness and virtual-displacement labels from the demonstrated wrench. Learn Kd only.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section on directional compliance and force modulation",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      },
+      {
+        "text": "Sample tau and noise, form the straight path, and regress both vector fields. Condition the compliance expert on the dataset trajectory Z_t.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A, eq. 9\u201312",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      },
+      {
+        "text": "Train 100k steps at batch 32 in bfloat16 with the AdamW schedule above. Keep joint-angle channels as an auxiliary target.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A, Training",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      }
+    ],
+    "infer": [
+      {
+        "text": "From images, language, and robot state, denoise the action expert for 10 steps to a TCP twist and gripper command.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A, action expert",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      },
+      {
+        "text": "Integrate the twist into a reference trajectory and condition the compliance expert on it.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Dual-expert paragraph and eq. 8",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          }
+        ]
+      },
+      {
+        "text": "Deform the reference pose by the predicted virtual displacement and run geometric impedance control with the predicted diagonal stiffness. Do not read the wrist wrench.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Appendix A.2, eq. 13",
+            "url": "https://arxiv.org/pdf/2609.23614"
+          },
+          {
+            "kind": "web",
+            "locator": "Project page, real-world experiments",
+            "url": "https://compvla.github.io/"
+          }
+        ]
+      }
+    ]
+  },
+  "task": {
+    "embodiment": "Franka Research 3 with three RealSense cameras.",
+    "action": "TCP twist and gripper, plus diagonal stiffness and a 6-d virtual displacement. Chunk length T=25.",
+    "horizon": "Inference denoises the action expert for 10 steps. Logs are synchronized at 10 Hz.",
+    "contact": "Training labels come from the interaction wrench. Inference inputs are images and joints. The low-level law is geometric impedance.",
+    "latency": "GPU model and wall time were not stated in the training paragraph.",
+    "data": "The paper says 100 demonstrations per task. The project page says 107 to 115 episodes per task.",
+    "status": "verified",
+    "sources": [
+      {
+        "kind": "pdf",
+        "locator": "Appendix A and the experiments section",
+        "url": "https://arxiv.org/pdf/2609.23614"
+      },
+      {
+        "kind": "web",
+        "locator": "Project page, Contact-rich Demonstration Dataset",
+        "url": "https://compvla.github.io/"
+      }
+    ]
+  },
+  "parts": [
+    {
+      "slot": "observation_encoder",
+      "choice": "pi0 / PaliGemma vision-language backbone, initialized from lerobot/pi0_base.",
+      "inputs": "Three camera views and joint position.",
+      "outputs": "Backbone tokens attended by both experts.",
+      "frozen": "The initialization is pi0_base. Which backbone blocks stay frozen was not stated in the opened training paragraph.",
+      "trained": "The training paragraph states the joint optimization. A per-block freeze list was not extracted.",
+      "breaks_if": "The new task has no calibrated multi-view images of a Franka TCP, or it cannot start from a pi0 checkpoint.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Appendix A, Training",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        },
+        {
+          "kind": "web",
+          "locator": "Project page, Dual-expert Architecture",
+          "url": "https://compvla.github.io/"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "language_or_goal",
+      "choice": "A language or goal conditioning channel was not recorded in the sections opened for this card.",
+      "inputs": "The opened field list is images, joints, torque, wrench, and the motion token.",
+      "outputs": "Not recorded.",
+      "frozen": "Not recorded.",
+      "trained": "Not recorded.",
+      "breaks_if": "A swap that assumes a pi0 text prompt cannot be checked from the sections opened here.",
+      "status": "missing",
+      "sources": [],
+      "evidence": {
+        "claim": "No comparison of language conditioning was extracted.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "memory",
+      "choice": "A chunk of T=25. No test-time memory beyond that chunk was described.",
+      "inputs": "The current observation and the noisy action and compliance sequences.",
+      "outputs": "A 25-step action sequence and a 25-step compliance sequence.",
+      "frozen": "No extra memory state was described.",
+      "trained": "The two experts.",
+      "breaks_if": "The task needs history longer than one 25-step chunk.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Action-token paragraph, T=25",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "action_representation",
+      "choice": "Flow matching. The action expert emits TCP twist and gripper. The compliance expert emits diagonal stiffness and virtual displacement.",
+      "inputs": "Noisy action tokens, and for the compliance expert a 13-d relative-pose condition.",
+      "outputs": "Twist plus gripper, stiffness k_t, and virtual displacement d_t.",
+      "frozen": "The compliance expert is initialized by copying the action expert. A freeze after that copy was not stated.",
+      "trained": "Both experts.",
+      "breaks_if": "The robot command is not a TCP twist, or the task has no relative-pose signal for the compliance expert.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Appendix A, action expert and eq. 8",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "controller",
+      "choice": "Geometric impedance. The virtual target is the reference pose deformed by d. Only Kd is learned.",
+      "inputs": "The reference pose, diagonal stiffness, and virtual displacement.",
+      "outputs": "A compliant wrench-level command.",
+      "frozen": "The controller is a geometric law, not a learned network.",
+      "trained": "Kd and d. Kp is not a learned output.",
+      "breaks_if": "The robot cannot run impedance control, or the task needs a learned proportional gain.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Appendix A.2, eq. 13",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "objective",
+      "choice": "Joint flow matching on the action sequence and the compliance sequence.",
+      "inputs": "Clean action Y and clean compliance Y, noised along tau from data to noise.",
+      "outputs": "The regression target is noise minus the clean sequence.",
+      "frozen": "Not stated as a frozen loss term.",
+      "trained": "The dual-expert policy for 100,000 steps, batch 32, bfloat16.",
+      "breaks_if": "The compliance labels, which are derived from the interaction wrench, are absent.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Appendix A, the joint flow-matching loss",
+          "url": "https://arxiv.org/pdf/2609.23614"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    }
+  ],
+  "gaps": [
+    "No public training code, so no formula is linked to a function and no module was printed.",
+    "Parameter count, GPU model, and wall time were not in the training paragraph.",
+    "The paper's 100 demonstrations and the project page's 107\u2013115 episodes were both recorded and not reconciled.",
+    "Image augmentation was not stated in the section used here.",
+    "No example clip aligns a teleop frame with a trained CompVLA checkpoint's action and the logged motion token."
+  ]
+}

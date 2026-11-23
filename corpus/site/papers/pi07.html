@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pi0.7: a Steerable Generalist Robotic Foundation Model with Emergent Capabilities</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --ink: #1c1915;
+  --muted: #5e584f;
+  --line: #ddd6c8;
+  --card: #fffdf8;
+  --accent: #0f6e56;
+  --warn: #8a4b08;
+  --bad: #8d2f2f;
+  --code: #efeae0;
+  --link: #0b5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161410;
+    --ink: #f3efe6;
+    --muted: #b7b0a4;
+    --line: #3a342c;
+    --card: #221e19;
+    --accent: #7dcea0;
+    --warn: #e0b15a;
+    --bad: #f0a0a0;
+    --code: #2c271f;
+    --link: #9dc7ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+}
+a { color: var(--link); }
+header, main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+main.wide { width: min(1440px, calc(100% - 24px)); }
+.matrix { overflow-x: auto; }
+.matrix td, .matrix th { min-width: 170px; }
+header { padding: 28px 0 8px; }
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 1.25rem; margin: 28px 0 8px; }
+.lede, .meta { color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.nav a, .pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--card);
+  text-decoration: none;
+  font: 13px/1.6 ui-sans-serif, system-ui, sans-serif;
+}
+.pill.verified { color: var(--accent); }
+.pill.inferred { color: var(--warn); }
+.pill.missing, .pill.none { color: var(--bad); }
+.section, a.paper-row {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+a.paper-row strong { color: var(--link); }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+video { width: 100%; max-width: 960px; background: #000; }
+pre {
+  background: var(--code);
+  padding: 12px;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 8px;
+}
+.formula { overflow-x: auto; padding: 8px 0; }
+.step { margin: 0 0 10px; }
+.sources { color: var(--muted); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+ul.gaps { margin-top: 0; }
+</style>
+</head>
+<body>
+<header>
+<p><a href="../index.html">All papers</a></p>
+<h1>pi0.7: a Steerable Generalist Robotic Foundation Model with Emergent Capabilities</h1>
+<p class="meta">Physical Intelligence · arXiv 2604.15483 2026</p>
+<p class="nav"><a href="https://arxiv.org/pdf/2604.15483">PDF</a> <a href="https://arxiv.org/abs/2604.15483">arXiv 2604.15483</a> <a href="https://www.pi.website/blog/pi07">project</a> <span class="pill none">none</span></p>
+<p>Physical-Intelligence/openpi documents pi0, pi0-FAST, and pi0.5. It does not contain pi0.7. That repository was not cloned as this paper&#x27;s code.</p>
+</header>
+<main>
+<section class="section"><p>pi0.7 is a 5B flow-matching VLA, a Gemma3 4B backbone plus an 860M action expert, trained with a richer prompt than a task sentence: detailed language, episode metadata, control-modality labels, and multi-view subgoal images. A separate 14B BAGEL model generates those subgoals. The paper&#x27;s claim is that this context lets the VLA train on mixed-quality and non-robot data without averaging incompatible strategies. There is no public implementation to link.</p>
+<p class="meta">Steerable VLA plus a subgoal world model · Compositional skill recombination and failure recovery · Local note: scaled-down expert via cached VLM features. The paper&#x27;s full model is about 5B, and the subgoal model is a separate 14B.</p>
+<h2>Not the same work</h2><ul><li><a href="https://github.com/Physical-Intelligence/openpi">Physical-Intelligence/openpi</a> — Related earlier models. The README&#x27;s model list stops at pi0.5.</li></ul>
+</section>
+<section class="section"><h2>Task contract</h2>
+<p class="meta">What a new task has to supply before a slot from this method can move.</p>
+<table><tbody><tr><td>Embodiment</td><td>Static and mobile, single-arm and bimanual robots. The joint layout is robot-specific.</td></tr><tr><td>Action</td><td>A joint or end-effector chunk. A shorter prefix of the chunk is executed.</td></tr><tr><td>Horizon</td><td>Image history has variable length and is compressed to a fixed token count. The numeric chunk length was not extracted.</td></tr><tr><td>Contact</td><td>Control modality is a label inside the context. A wrench input was not recorded.</td></tr><tr><td>Latency</td><td>GPU, batch, step count, and wall time were not extracted.</td></tr><tr><td>Data</td><td>Robot demonstrations, autonomous rollouts, human video, and web vision-language data. One episode count was not extracted.</td></tr></tbody></table>
+<span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section VI-A and Section IV</a></div>
+<h2>Parts</h2>
+<h3>Observation encoder <span class="pill verified">verified</span></h3>
+<p><strong>Gemma3 vision encoder, 400M of the 4B VLM, plus a MEM history encoder.</strong></p>
+<p>In: n camera views and a variable-length history.</p>
+<p>Out: A fixed token budget for any history length.</p>
+<p>Frozen: Knowledge insulation stops action-expert gradients from entering the VLM. Trained: The VLM, with FAST-token targets.</p>
+<p>Breaks if: The new task has no camera history, or the VLM cannot be initialized from Gemma3.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section IV</a></div><h3>Language or goal <span class="pill verified">verified</span></h3>
+<p><strong>Detailed language, episode metadata, a control-modality label, and multi-view subgoal images from a separate model.</strong></p>
+<p>In: Context C_t.</p>
+<p>Out: Conditioning for the action chunk and the target of the subgoal model.</p>
+<p>Frozen: The subgoal model is a separate 14B network, initialized from BAGEL. Trained: The VLM consumes the context. The BAGEL model is trained on labeled segments.</p>
+<p>Breaks if: The new task has only a short task sentence and no metadata or subgoal image.</p>
+<p>Evidence: Eq. 1 conditions on this context. A numeric ablation of the context bundle was not extracted. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Eq. 1 and Section V-B</a></div><h3>Memory <span class="pill verified">verified</span></h3>
+<p><strong>MEM temporal and spatial compression to a fixed token count.</strong></p>
+<p>In: A variable-length image history.</p>
+<p>Out: A fixed token sequence.</p>
+<p>Frozen: The compressor is part of the VLM training story. A freeze flag was not extracted. Trained: The history encoder.</p>
+<p>Breaks if: The task is a single frame with no history worth compressing.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section IV</a></div><h3>Action representation <span class="pill verified">verified</span></h3>
+<p><strong>An 860M flow-matching action expert.</strong></p>
+<p>In: VLM tokens and the noisy action chunk.</p>
+<p>Out: A chunk whose log-likelihood is the written objective.</p>
+<p>Frozen: Action-expert gradients do not enter the VLM. Trained: The 860M expert.</p>
+<p>Breaks if: The action is not a chunk, or the host backbone is not a VLM the expert can attend to.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section III and IV</a></div><h3>Controller <span class="pill verified">verified</span></h3>
+<p><strong>Execute a shorter prefix of the predicted chunk. The control modality is context, not a learned impedance law.</strong></p>
+<p>In: The action chunk.</p>
+<p>Out: The executed prefix.</p>
+<p>Frozen: The policy is held fixed at deployment. Online fast weights were not described. Trained: No separate controller was described.</p>
+<p>Breaks if: The robot needs a compliant wrench rather than a position or joint chunk.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section III, chunk execution</a></div><h3>Objective <span class="pill verified">verified</span></h3>
+<p><strong>A flow-matching lower bound on the steerable chunk likelihood, plus conditional flow matching for the subgoal image.</strong></p>
+<p>In: Observations, context, the action chunk, and labeled subgoal frames.</p>
+<p>Out: An action loss and a subgoal-image loss on a separate model.</p>
+<p>Frozen: The subgoal model does not share weights with the 5B policy. Trained: The 5B policy and, separately, the 14B subgoal model.</p>
+<p>Breaks if: Subgoal images and metadata cannot be produced for the new task.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Eq. 1 and the subgoal flow-matching objective</a></div>
+</section>
+<section class="section"><h2>Data</h2>
+<p class="meta">No dataset was opened. The paper describes the mixture and the observation fields. It does not give one episode count in the sections used here.</p>
+<p><span class="pill both">both</span> The paper trains on recorded demonstrations and on autonomous policy rollouts, plus human video and web context. This pass did not open a separate file for each source.</p>
+<h3>Mixed robot, human, and web context <span class="pill paper">paper</span> <span class="pill verified">verified</span> <span class="pill mixed">mixed</span></h3>
+<p>Demonstrations on static and mobile, single-arm and bimanual robots; autonomous rollouts including failures; human interventions; open-source robot data; egocentric human video; web localization, attributes, VQA, text, and video captioning. A single episode count was not extracted.</p>
+<p>The subgoal world model trains on a subset of segments with high-quality subtask labels. The image at the end of the segment is the target subgoal.</p>
+<p>Not extracted.</p>
+<p>Recorded robot demonstrations, autonomous rollouts including failures, human interventions, egocentric human video, and web vision-language data.</p>
+<p>Feeds gradient: true. Golden action_chunk: The policy target is the logged action chunk. The subgoal model uses the image at the end of a labeled segment.</p>
+<p><strong>Example</strong> <span class="pill missing">missing</span> none. Checkpoint action <code>a_t</code> dim None. No clip aligns an observation frame with a trained pi0.7 checkpoint&#x27;s action and the logged action chunk.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>I_t</code></td><td>camera images</td><td><code>n views</code></td><td>History is compressed by the MEM encoder</td></tr><tr><td><code>q_t</code></td><td>joint configuration</td><td><code>robot-specific</code></td><td></td></tr><tr><td><code>a_t</code></td><td>joint or end-effector command</td><td><code>chunk H</code></td><td>A shorter prefix of the chunk is executed</td></tr><tr><td><code>C_t</code></td><td>context</td><td><code>language, metadata, subgoal images</code></td><td>Metadata includes quality, strategy, and control modality</td></tr></tbody></table>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section VI-A and the subgoal training paragraph</a></div>
+</section>
+<section class="section"><h2>Model</h2>
+<p>Gemma3 4B VLM, including a 400M vision encoder, with a MEM-style video history encoder that emits a fixed token count for any history length. An 860M flow-matching action expert attends to the VLM. Knowledge insulation trains the VLM with FAST tokens and stops action-expert gradients from entering the VLM. The subgoal generator is a BAGEL 14B model, separate from the 5B policy.</p>
+<p><strong>About 5B: Gemma3 4B VLM (400M of that is the vision encoder) and an 860M action expert. The subgoal world model is a separate BAGEL 14B.</strong> <span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Figure 2 caption and Section IV</a></div></p>
+<p class="meta">No pi0.7 code was cloned. openpi was left uncloned because its README does not list this model.</p>
+<table><thead><tr><th>Module</th><th>Params</th><th>Detail</th></tr></thead><tbody><tr><td>VLM backbone</td><td>4B</td><td>Initialized from Gemma3, including the 400M vision encoder. <div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section IV</a></div></td></tr><tr><td>MEM history encoder</td><td></td><td>Temporal and spatial compression to a fixed token budget. <div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section IV</a></div></td></tr><tr><td>Action expert</td><td>860M</td><td>Flow matching. Gradients do not enter the VLM. <div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section III and IV</a></div></td></tr><tr><td>Subgoal world model</td><td>14B</td><td>Initialized from BAGEL. Generates multi-view near-future images from the subtask, observation, and metadata. <div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section V-B</a></div></td></tr></tbody></table>
+
+</section>
+<section class="section"><h2>Compute</h2>
+<table><tbody><tr><td>GPU, batch, steps, wall time</td><td>Not extracted from the sections opened for this card.</td><td><span class="pill missing">missing</span> </td></tr></tbody></table>
+</section>
+<section class="section"><h2>Objectives</h2>
+<h3>Steerable action likelihood <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\max_\theta\ \mathbb{E}_{\mathcal{D}}\big[\log\pi_\theta(a_{t:t+H}\mid o_{t-T:t},\mathcal{C}_t)\big]">\max_\theta\ \mathbb{E}_{\mathcal{D}}\big[\log\pi_\theta(a_{t:t+H}\mid o_{t-T:t},\mathcal{C}_t)\big]</div>
+<p>The written objective is a chunk log-likelihood conditioned on recent observations and the full context. The paper says the flow-matching expert optimizes a lower bound of that likelihood rather than the closed form. Context is what makes a failed episode usable: the metadata tells the model how the episode was performed.</p>
+<ul><li><code>\mathcal{C}_t</code> — Language, episode metadata, control modality, and subgoal images.</li><li><code>H</code> — Action-chunk horizon. A shorter prefix is executed.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Eq. 1</a></div><h3>Subgoal flow matching <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\max_\psi\ \mathbb{E}_{\mathcal{D}_g}\big[\mathcal{L}_{\mathrm{CFM}}(g^\star_t,\ g_\psi(o_t,\hat{\ell}_t,m))\big]">\max_\psi\ \mathbb{E}_{\mathcal{D}_g}\big[\mathcal{L}_{\mathrm{CFM}}(g^\star_t,\ g_\psi(o_t,\hat{\ell}_t,m))\big]</div>
+<p>The world model is trained with conditional flow matching to the image at the end of a labeled segment. At runtime it fills in the subgoal images the VLA was trained to consume.</p>
+<ul><li><code>g^\star_t</code> — Observed frame at the end of the segment.</li><li><code>m</code> — Episode metadata.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section V-B</a></div>
+</section>
+<section class="section"><h2>Train</h2><div class="step"><strong>1.</strong> Initialize the VLM and vision encoder from Gemma3 and the subgoal model from BAGEL. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section IV and V-B</a></div></div>
+<div class="step"><strong>2.</strong> Supervise the VLM with FAST tokens. Train the action expert with flow matching and stop its gradients at the VLM. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section III</a></div></div>
+<div class="step"><strong>3.</strong> Put language, metadata, control modality, and subgoal images in the prompt so mixed-quality episodes stay distinct modes. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section V</a></div></div>
+<div class="step"><strong>4.</strong> Train the subgoal model with conditional flow matching on high-quality labeled segments, using the segment&#x27;s final frame as the target. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section V-B</a></div></div></section>
+<section class="section"><h2>Infer</h2><div class="step"><strong>1.</strong> A high-level policy of the same architecture writes the subtask language. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Figure 2 caption</a></div></div>
+<div class="step"><strong>2.</strong> The BAGEL world model writes multi-view subgoal images from that subtask, the observation, and metadata. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section V-B</a></div></div>
+<div class="step"><strong>3.</strong> The 860M action expert flow-matches a chunk conditioned on history tokens and that context. Execute a prefix of the chunk. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2604.15483">pdf: Section III</a></div></div></section>
+<section class="section"><h2>Gaps</h2><ul class="gaps"><li>No public pi0.7 code. openpi is an earlier repository and was not used as an implementation.</li><li>Training GPU, batch size, step count, and wall time were not extracted.</li><li>The author list is the organization byline. The PDF names a long team that was not copied name by name.</li><li>No sample was loaded, and the paper section used here does not give a single episode count.</li><li>No example clip aligns an observation frame with a trained pi0.7 checkpoint&#x27;s action and the logged action chunk.</li></ul></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script>
+document.querySelectorAll(".formula").forEach((el) => {
+  if (window.katex) {
+    katex.render(el.dataset.latex, el, {displayMode: true, throwOnError: false});
+  }
+});
+</script>
+</body>
+</html>

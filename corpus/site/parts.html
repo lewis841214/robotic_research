@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parts</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --ink: #1c1915;
+  --muted: #5e584f;
+  --line: #ddd6c8;
+  --card: #fffdf8;
+  --accent: #0f6e56;
+  --warn: #8a4b08;
+  --bad: #8d2f2f;
+  --code: #efeae0;
+  --link: #0b5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161410;
+    --ink: #f3efe6;
+    --muted: #b7b0a4;
+    --line: #3a342c;
+    --card: #221e19;
+    --accent: #7dcea0;
+    --warn: #e0b15a;
+    --bad: #f0a0a0;
+    --code: #2c271f;
+    --link: #9dc7ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+}
+a { color: var(--link); }
+header, main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+main.wide { width: min(1440px, calc(100% - 24px)); }
+.matrix { overflow-x: auto; }
+.matrix td, .matrix th { min-width: 170px; }
+header { padding: 28px 0 8px; }
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 1.25rem; margin: 28px 0 8px; }
+.lede, .meta { color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.nav a, .pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--card);
+  text-decoration: none;
+  font: 13px/1.6 ui-sans-serif, system-ui, sans-serif;
+}
+.pill.verified { color: var(--accent); }
+.pill.inferred { color: var(--warn); }
+.pill.missing, .pill.none { color: var(--bad); }
+.section, a.paper-row {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+a.paper-row strong { color: var(--link); }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+video { width: 100%; max-width: 960px; background: #000; }
+pre {
+  background: var(--code);
+  padding: 12px;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 8px;
+}
+.formula { overflow-x: auto; padding: 8px 0; }
+.step { margin: 0 0 10px; }
+.sources { color: var(--muted); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+ul.gaps { margin-top: 0; }
+</style>
+</head>
+<body>
+<header>
+<p><a href="index.html">All papers</a></p>
+<h1>Parts</h1>
+<p class="lede">Match a new task to a row in the contract. Read the break condition before moving a slot. A verified evidence pill means the cited source compares that slot. A missing pill means the published number is for the whole system, or the comparison was not extracted.</p>
+</header>
+<main class="wide">
+<section class="section matrix"><h2>Task contract</h2>
+<table><thead><tr><th></th><th><a href="papers/microvla.html">microvla</a></th><th><a href="papers/compvla.html">compvla</a></th><th><a href="papers/robottt.html">robottt</a></th><th><a href="papers/supermimic.html">supermimic</a></th><th><a href="papers/pi07.html">pi07</a></th><th><a href="papers/dreamzero.html">dreamzero</a></th></tr></thead><tbody><tr><th>Embodiment</th><td>Franka arm in LIBERO-Spatial.</td><td>Franka Research 3 with three RealSense cameras.</td><td>Downstream eval is a YAM bimanual robot with four 480p cameras. Pretraining also uses tabletop bimanual video and egocentric human video.</td><td>Unitree G1 humanoid in MuJoCo Warp.</td><td>Static and mobile, single-arm and bimanual robots. The joint layout is robot-specific.</td><td>AgiBot G1 teleop and a Franka robot on DROID.</td></tr><tr><th>Action</th><td>7-d normalized action. The training chunk is 16 steps.</td><td>TCP twist and gripper, plus diagonal stiffness and a 6-d virtual displacement. Chunk length T=25.</td><td>An action chunk with its own noise level. The chunk length H was not extracted.</td><td>GenCoord G1 built a 29-d action. The decoder&#x27;s last layer is (29, 256).</td><td>A joint or end-effector chunk. A shorter prefix of the chunk is executed.</td><td>Relative joint positions normalized to [-1, 1]. AgiBot uses 48 action steps at 30 Hz. DROID uses 24 action steps at 15 Hz.</td></tr><tr><th>Horizon</th><td>Closed-loop eval executes 5 actions, then replans. The spatial suite limit in the eval script is 220 steps.</td><td>Inference denoises the action expert for 10 steps. Logs are synchronized at 10 Hz.</td><td>Pretrain context grows to 8,000 steps. Post-train context is 1,000 steps.</td><td>The world model is fit on windows of 8 steps. Policy improvement imagines 32 steps.</td><td>Image history has variable length and is compressed to a fixed token count. The numeric chunk length was not extracted.</td><td>Both settings cover 1.6 seconds. Training packs M=4 chunks of K=2 latent frames. Closed-loop inference writes the real frame back into the KV cache.</td></tr><tr><th>Contact</th><td>Images and an 8-d state. No wrench or torque input.</td><td>Training labels come from the interaction wrench. Inference inputs are images and joints. The low-level law is geometric impedance.</td><td>The opened sections describe cameras, proprioception, and language. No wrench input was recorded.</td><td>Sim context is 33-d: foot_friction, base_com, encoder_bias. No tactile image.</td><td>Control modality is a label inside the context. A wrench input was not recorded.</td><td>Video, text, proprioception, and action. A wrench input was not recorded.</td></tr><tr><th>Latency</th><td>README: 79 ms per action chunk for the 10.5M model.</td><td>GPU model and wall time were not stated in the training paragraph.</td><td>Deployment is 30 Hz on an RTX 5090 workstation.</td><td>The GenCoord environment step is 0.02 s and the physics step is 0.005 s. The paper&#x27;s result run is one H100 for 3 hours.</td><td>GPU, batch, step count, and wall time were not extracted.</td><td>DreamZero-Flash is reported at about 7 Hz on GB200, 5.7 s down to 150 ms. The README also quotes about 0.6 s on GB200 and about 3 s on H100 with DiT caching.</td></tr><tr><th>Data</th><td>README: 432 demos and 52,970 frames from LIBERO-Spatial. Two cameras at 96 px.</td><td>The paper says 100 demonstrations per task. The project page says 107 to 115 episodes per task.</td><td>Pup Go Car about 8 hours, Circuit about 6 hours, Gear Bot about 5 hours.</td><td>A library of 129,514 reference motions. The replay buffer stores 1,000 steps per environment.</td><td>Robot demonstrations, autonomous rollouts, human video, and web vision-language data. One episode count was not extracted.</td><td>AgiBot is about 500 hours and 7.2k episodes. DROID is a separate 100k-step run. Video is sampled at 5 fps.</td></tr></tbody></table></section>
+<section class="section matrix"><h2>Slots</h2>
+<table><thead><tr><th></th><th><a href="papers/microvla.html">microvla</a></th><th><a href="papers/compvla.html">compvla</a></th><th><a href="papers/robottt.html">robottt</a></th><th><a href="papers/supermimic.html">supermimic</a></th><th><a href="papers/pi07.html">pi07</a></th><th><a href="papers/dreamzero.html">dreamzero</a></th></tr></thead><tbody><tr><th>Observation encoder</th><td><strong>Shared 4-layer ViT, width 192, patch 8, then a linear map into the prefix.</strong><br><span class='meta'>Breaks if: The image side is not a multiple of 8, or the camera count differs from the two-camera LIBERO config.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>pi0 / PaliGemma vision-language backbone, initialized from lerobot/pi0_base.</strong><br><span class='meta'>Breaks if: The new task has no calibrated multi-view images of a Franka TCP, or it cannot start from a pi0 checkpoint.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>GR00T N1.7 Eagle VLM. The VLM size was not extracted.</strong><br><span class='meta'>Breaks if: The observation is not an image-plus-proprioception pair the Eagle trunk can tokenize.</span><br>The Eagle trunk was not ablated in the numbers extracted here. <span class="pill missing">missing</span></td><td><strong>The representation&#x27;s state vector, normalized, concatenated with the processed action and the sim context.</strong><br><span class='meta'>Breaks if: The new task provides cameras or language and has no MuJoCo representation state.</span><br>The published comparison does not swap this state encoder for a vision encoder. <span class="pill missing">missing</span></td><td><strong>Gemma3 vision encoder, 400M of the 4B VLM, plus a MEM history encoder.</strong><br><span class='meta'>Breaks if: The new task has no camera history, or the VLM cannot be initialized from Gemma3.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Frozen VAE, image encoder, and text encoder in front of a Wan video DiT. The paper&#x27;s main run is Wan2.1-I2V-14B.</strong><br><span class='meta'>Breaks if: The new task has no video sequence, or it cannot host a 14B video backbone.</span><br>Section 4 reports a 5B Wan ablation beside the 14B runs. The numeric result of that ablation was not copied onto this card. <span class="pill verified">verified</span></td></tr><tr><th>Language or goal</th><td><strong>Whitespace tokenizer over the task string, embedded with the discretized state.</strong><br><span class='meta'>Breaks if: The instruction vocabulary differs from the cache tokenizer built for these task strings.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>A language or goal conditioning channel was not recorded in the sections opened for this card.</strong><br><span class='meta'>Breaks if: A swap that assumes a pi0 text prompt cannot be checked from the sections opened here.</span><br>No comparison of language conditioning was extracted. <span class="pill missing">missing</span></td><td><strong>One instruction shared across the trajectory.</strong><br><span class='meta'>Breaks if: The task has no language instruction, or the instruction changes inside one trajectory.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>A reference motion clip. The actor has a per-task encoder.</strong><br><span class='meta'>Breaks if: The new task has no reference motion to track.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Detailed language, episode metadata, a control-modality label, and multi-view subgoal images from a separate model.</strong><br><span class='meta'>Breaks if: The new task has only a short task sentence and no metadata or subgoal image.</span><br>Eq. 1 conditions on this context. A numeric ablation of the context bundle was not extracted. <span class="pill missing">missing</span></td><td><strong>A frozen text encoder over the task prompt.</strong><br><span class='meta'>Breaks if: The task has no language prompt the frozen encoder can embed.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td></tr><tr><th>Memory</th><td><strong>A prefix KV cache for one chunk. No state is carried into the next replan.</strong><br><span class='meta'>Breaks if: The task needs information from earlier than the current cameras, state, and instruction.</span><br>No long-horizon memory comparison was reported for this repository. <span class="pill missing">missing</span></td><td><strong>A chunk of T=25. No test-time memory beyond that chunk was described.</strong><br><span class='meta'>Breaks if: The task needs history longer than one 25-step chunk.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>A two-layer GeLU MLP whose fast weights are the memory, updated by an MSE bind after attention in each of 16 DiT layers.</strong><br><span class='meta'>Breaks if: The new task is a short Markov chunk where a persisting fast weight has nothing to store, or the host network has no DiT block to wrap.</span><br>No isolated success delta for the fast-weight layer was extracted. <span class="pill missing">missing</span></td><td><strong>Short imagined rollout. The world model is unrolled 8 steps on logged actions and 32 steps for the policy.</strong><br><span class='meta'>Breaks if: The useful horizon is far beyond 32 imagined steps, or the simulator cannot be differentiated.</span><br>The 32-step horizon was not given its own ablation on this card. <span class="pill missing">missing</span></td><td><strong>MEM temporal and spatial compression to a fixed token count.</strong><br><span class='meta'>Breaks if: The task is a single frame with no history worth compressing.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>A causal KV cache. After each chunk the predicted frame is replaced by the real observation.</strong><br><span class='meta'>Breaks if: The rollout is open-loop and cannot replace a predicted frame with a real one.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td></tr><tr><th>Action representation</th><td><strong>Flow matching over a 16 by 7 chunk. Euler sampling defaults to 10 steps.</strong><br><span class='meta'>Breaks if: The action is not a 7-d chunk, or the horizon changes without retraining.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Flow matching. The action expert emits TCP twist and gripper. The compliance expert emits diagonal stiffness and virtual displacement.</strong><br><span class='meta'>Breaks if: The robot command is not a TCP twist, or the task has no relative-pose signal for the compliance expert.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Flow matching with an independent noise time on each action chunk.</strong><br><span class='meta'>Breaks if: Actions are not chunked, so the per-chunk noise schedule has no boundary.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>A per-task encoder to a 32-d tanh latent and a shared decoder.</strong><br><span class='meta'>Breaks if: The action is a dexterous gripper command or a language-conditioned chunk rather than a humanoid tracking action.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>An 860M flow-matching action expert.</strong><br><span class='meta'>Breaks if: The action is not a chunk, or the host backbone is not a VLM the expert can attend to.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Action registers inside the same DiT that denoises video latents.</strong><br><span class='meta'>Breaks if: The action is a torque or a compliance command rather than a normalized joint-position chunk.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td></tr><tr><th>Controller</th><td><strong>Unnormalize the chunk, clamp to [-1, 1], and execute the first 5 actions.</strong><br><span class='meta'>Breaks if: The robot does not accept the 7-d normalized LIBERO action.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Geometric impedance. The virtual target is the reference pose deformed by d. Only Kd is learned.</strong><br><span class='meta'>Breaks if: The robot cannot run impedance control, or the task needs a learned proportional gain.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>The paper deploys the chunk on the YAM at 30 Hz. The number of actions executed before a replan was not extracted.</strong><br><span class='meta'>Breaks if: The robot cannot accept the YAM action chunk, or it cannot host a test-time weight update.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>The policy action is applied in MuJoCo Warp. No learned compliance controller was described.</strong><br><span class='meta'>Breaks if: The new task needs a force or impedance command rather than a direct tracking action.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Execute a shorter prefix of the predicted chunk. The control modality is context, not a learned impedance law.</strong><br><span class='meta'>Breaks if: The robot needs a compliant wrench rather than a position or joint chunk.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Execute the decoded relative joint chunk. The paper&#x27;s optimized inference is about 7 Hz.</strong><br><span class='meta'>Breaks if: The robot cannot track a joint-position chunk at the chunk&#x27;s rate.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td></tr><tr><th>Objective</th><td><strong>1,000 steps of SigLIP cosine-plus-MSE, then 8,000 steps of flow-matching MSE.</strong><br><span class='meta'>Breaks if: The run skips distillation or replaces the flow target noise minus action.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Joint flow matching on the action sequence and the compliance sequence.</strong><br><span class='meta'>Breaks if: The compliance labels, which are derived from the interaction wrench, are absent.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Outer flow-matching loss, plus the inner MSE that writes the fast weights. TBPTT cuts the backward pass at the segment boundary.</strong><br><span class='meta'>Breaks if: Gradients are allowed to flow through the fast weights across the whole 8,000-step context.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>Fit the world model on 8-step windows, then ascend the imagined return through 32 frozen steps. A critic regresses the return.</strong><br><span class='meta'>Breaks if: The simulator is not differentiable, so the 32-step gradient has nowhere to go.</span><br>One H100 for 3 hours passes the cited SONIC return, and two H100s for 9.8 hours reach zero failures on 129,514 motions. The comparison is the full recipe, not an ablation of the MLP width. <span class="pill verified">verified</span></td><td><strong>A flow-matching lower bound on the steerable chunk likelihood, plus conditional flow matching for the subgoal image.</strong><br><span class='meta'>Breaks if: Subgoal images and metadata cannot be produced for the new task.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td><td><strong>One weighted MSE on the video velocity and the action velocity.</strong><br><span class='meta'>Breaks if: The batch has actions and no aligned video, or video and no actions.</span><br>The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span></td></tr></tbody></table></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script>
+document.querySelectorAll(".formula").forEach((el) => {
+  if (window.katex) {
+    katex.render(el.dataset.latex, el, {displayMode: true, throwOnError: false});
+  }
+});
+</script>
+</body>
+</html>

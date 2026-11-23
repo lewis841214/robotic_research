@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>microVLA: minimal VLA training and inference on a 4 GB laptop GPU</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --ink: #1c1915;
+  --muted: #5e584f;
+  --line: #ddd6c8;
+  --card: #fffdf8;
+  --accent: #0f6e56;
+  --warn: #8a4b08;
+  --bad: #8d2f2f;
+  --code: #efeae0;
+  --link: #0b5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161410;
+    --ink: #f3efe6;
+    --muted: #b7b0a4;
+    --line: #3a342c;
+    --card: #221e19;
+    --accent: #7dcea0;
+    --warn: #e0b15a;
+    --bad: #f0a0a0;
+    --code: #2c271f;
+    --link: #9dc7ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+}
+a { color: var(--link); }
+header, main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+main.wide { width: min(1440px, calc(100% - 24px)); }
+.matrix { overflow-x: auto; }
+.matrix td, .matrix th { min-width: 170px; }
+header { padding: 28px 0 8px; }
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 1.25rem; margin: 28px 0 8px; }
+.lede, .meta { color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.nav a, .pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--card);
+  text-decoration: none;
+  font: 13px/1.6 ui-sans-serif, system-ui, sans-serif;
+}
+.pill.verified { color: var(--accent); }
+.pill.inferred { color: var(--warn); }
+.pill.missing, .pill.none { color: var(--bad); }
+.section, a.paper-row {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+a.paper-row strong { color: var(--link); }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+video { width: 100%; max-width: 960px; background: #000; }
+pre {
+  background: var(--code);
+  padding: 12px;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 8px;
+}
+.formula { overflow-x: auto; padding: 8px 0; }
+.step { margin: 0 0 10px; }
+.sources { color: var(--muted); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+ul.gaps { margin-top: 0; }
+</style>
+</head>
+<body>
+<header>
+<p><a href="../index.html">All papers</a></p>
+<h1>microVLA: minimal VLA training and inference on a 4 GB laptop GPU</h1>
+<p class="meta">KhushiJ2911 · GitHub repository 2026</p>
+<p class="nav"><a href="https://github.com/KhushiJ2911/microVLA">project</a> <a href="https://github.com/KhushiJ2911/microVLA">repo efbb84d8</a> <span class="pill unofficial">unofficial</span></p>
+<p>Cloned at the commit above. This is the repository requested for the MicroVLA row. Its README describes a 10.5M pi0.5-style model. It does not implement the 12.37M Theia + POTION checkpoint.</p>
+</header>
+<main>
+<section class="section"><p>The cloned repository trains one small pi0.5-style policy from scratch on LIBERO-Spatial. A shared 4-layer ViT embeds two cameras, instruction words and discretized state form the prefix, and a narrower action expert predicts a 16-step chunk with flow matching. Training first matches ViT patches to frozen SigLIP features, then runs the flow-matching loss for 8,000 steps. The README reports 10.5M parameters and 270/300 successes on LIBERO-Spatial. The local 12.4M landscape note matches a different checkpoint, listed under Not the same work.</p>
+<p class="meta">Local note: distilled vision, static text lookup, and a chunk head. This repository is a pi0.5-style ViT plus flow-matching action expert. · Embedded controller memory and latency. The README targets a 4 GB laptop GPU. · Local note: ideal baseline, about 2–3 GB VRAM. The README&#x27;s small-model timing is 79 ms per chunk.</p>
+<h2>Not the same work</h2><ul><li><a href="https://huggingface.co/Ngseo/microvla-seqgru-libero">Ngseo/microvla-seqgru-libero</a> — A different 12.37M LIBERO policy: Theia-tiny vision, a frozen POTION text table, a GRU readout, and an L1 chunk head. The RSS workshop title uses the same MicroVLA name.</li><li><a href="https://github.com/varununayak/microvla">varununayak/microvla</a> — A 117,248-parameter RT-2 toy on a synthetic 32x32 reach task.</li></ul>
+</section>
+<section class="section"><h2>Task contract</h2>
+<p class="meta">What a new task has to supply before a slot from this method can move.</p>
+<table><tbody><tr><td>Embodiment</td><td>Franka arm in LIBERO-Spatial.</td></tr><tr><td>Action</td><td>7-d normalized action. The training chunk is 16 steps.</td></tr><tr><td>Horizon</td><td>Closed-loop eval executes 5 actions, then replans. The spatial suite limit in the eval script is 220 steps.</td></tr><tr><td>Contact</td><td>Images and an 8-d state. No wrench or torque input.</td></tr><tr><td>Latency</td><td>README: 79 ms per action chunk for the 10.5M model.</td></tr><tr><td>Data</td><td>README: 432 demos and 52,970 frames from LIBERO-Spatial. Two cameras at 96 px.</td></tr></tbody></table>
+<span class="pill verified">verified</span> <div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README LIBERO-Spatial section</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L776">code: train.py LIBERO config and eval replan default</a></div>
+<h2>Parts</h2>
+<h3>Observation encoder <span class="pill verified">verified</span></h3>
+<p><strong>Shared 4-layer ViT, width 192, patch 8, then a linear map into the prefix.</strong></p>
+<p>In: Two uint8 cameras, default 96 px, scaled into [-1, 1].</p>
+<p>Out: Patch tokens, plus a learned camera embedding when two cameras are used.</p>
+<p>Frozen: SigLIP-B/16 is frozen and used only as the distillation teacher. Trained: The ViT, including the patch projection.</p>
+<p>Breaks if: The image side is not a multiple of 8, or the camera count differs from the two-camera LIBERO config.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README vision row</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L96-L114">Vision · train.py:96-114</a></div><h3>Language or goal <span class="pill verified">verified</span></h3>
+<p><strong>Whitespace tokenizer over the task string, embedded with the discretized state.</strong></p>
+<p>In: Token ids. Pad id 0 is dropped from the attention mask.</p>
+<p>Out: Prefix tokens concatenated after the image tokens.</p>
+<p>Frozen: Nothing in this slot stays frozen during the action-training phase. Trained: The token embedding.</p>
+<p>Breaks if: The instruction vocabulary differs from the cache tokenizer built for these task strings.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L201-L214">code: train.py embed_prefix</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L201-L214">MicroVLA.embed_prefix · train.py:201-214</a></div><h3>Memory <span class="pill verified">verified</span></h3>
+<p><strong>A prefix KV cache for one chunk. No state is carried into the next replan.</strong></p>
+<p>In: Cached prefix keys and values, the noisy action chunk, and the flow time.</p>
+<p>Out: A 16-step action velocity. The cache is rebuilt at the next observation.</p>
+<p>Frozen: The cache is an inference reuse of the prefix, not a learned memory module. Trained: Nothing extra. The cache is computed from the current observation.</p>
+<p>Breaks if: The task needs information from earlier than the current cameras, state, and instruction.</p>
+<p>Evidence: No long-horizon memory comparison was reported for this repository. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L230-L258">code: train.py prefix_cache and sample</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L230-L237">MicroVLA.prefix_cache · train.py:230-237</a></div><h3>Action representation <span class="pill verified">verified</span></h3>
+<p><strong>Flow matching over a 16 by 7 chunk. Euler sampling defaults to 10 steps.</strong></p>
+<p>In: Noisy actions, flow time, and the prefix.</p>
+<p>Out: Velocity with the same shape as the chunk.</p>
+<p>Frozen: Nothing in the action expert stays frozen during the train phase. Trained: The width-128 action expert.</p>
+<p>Breaks if: The action is not a 7-d chunk, or the horizon changes without retraining.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README flow-matching equation</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L247-L266">MicroVLA.sample and loss · train.py:247-266</a></div><h3>Controller <span class="pill verified">verified</span></h3>
+<p><strong>Unnormalize the chunk, clamp to [-1, 1], and execute the first 5 actions.</strong></p>
+<p>In: The sampled 16 by 7 chunk and the dataset action statistics.</p>
+<p>Out: Seven robot commands per control step.</p>
+<p>Frozen: The policy weights stay fixed at eval. Trained: No separate controller is trained.</p>
+<p>Breaks if: The robot does not accept the 7-d normalized LIBERO action.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/bench/eval_libero.py#L225-L228">code: bench/eval_libero.py replan default</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L720-L729">TinyPolicy.select_action · train.py:720-729</a></div><h3>Objective <span class="pill verified">verified</span></h3>
+<p><strong>1,000 steps of SigLIP cosine-plus-MSE, then 8,000 steps of flow-matching MSE.</strong></p>
+<p>In: Images, state, instruction, and the action chunk. Distill uses one random camera.</p>
+<p>Out: A scalar loss.</p>
+<p>Frozen: SigLIP is frozen. During distillation only the ViT and a linear head train. Trained: The full MicroVLA during the flow-matching phase.</p>
+<p>Breaks if: The run skips distillation or replaces the flow target noise minus action.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L835-L849">code: train.py distillation and flow steps</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L260-L266">MicroVLA.loss · train.py:260-266</a></div>
+</section>
+<section class="section"><h2>Data</h2>
+<p class="meta">LIBERO parquets were not downloaded. Shapes are the cache arrays written by preprocess. Volumes are the README&#x27;s counts for that cache.</p>
+<p><span class="pill recorded_success">recorded_success</span> Training reads fixed LIBERO demonstration frames and 16-step action chunks. The learned policy does not write the training set.</p>
+<h3>LIBERO-Spatial <span class="pill code">code</span> <span class="pill verified">verified</span> <span class="pill recorded">recorded</span></h3>
+<p>README: 432 demos and 52,970 frames from HuggingFaceVLA/libero, pinned revision 86958911c0f959db2bbbdb107eb3e17c5f9c798e. Eval default is 10 initial states per task, replan every 5 actions, 220-step limit.</p>
+<p>A batch draws random frame indices from the train split. The 16 future actions are clamped to the last frame of the same episode. Validation episodes are held out in the cache manifest.</p>
+<p>Random replicate-pad shift of 4 pixels on every step. Color jitter is off unless --color-jitter is set. Distillation upsamples the image 2x for SigLIP.</p>
+<p>Recorded sim_teleop: LIBERO-Spatial. Expert demonstrations from HuggingFaceVLA/libero.</p>
+<p>Feeds gradient: true. Golden action_chunk: The target is 16 future 7-d actions from the demonstration, clamped at the episode end.</p>
+<p><strong>Example</strong> <span class="pill missing">missing</span> none. Checkpoint action <code>actions</code> dim 7. No clip aligns a LIBERO frame with a trained MicroVLA checkpoint&#x27;s 7-d action and the logged 16-step action chunk.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>images</code></td><td>uint8</td><td><code>(N, 2, 3, 96, 96)</code></td><td>observation.images.image and image2. Default --image-size 96. Scaled by 127.5 into [-1, 1] in the ViT.</td></tr><tr><td><code>state</code></td><td>float32</td><td><code>(N, 8)</code></td><td>Normalized, then each value is discretized into 256 bins.</td></tr><tr><td><code>actions</code></td><td>float32</td><td><code>(N, 7)</code></td><td>A training target is 16 future steps, clamped at the episode end.</td></tr><tr><td><code>instruction</code></td><td>int64 token ids</td><td><code>(B, length)</code></td><td>Whitespace tokenizer built from the task strings. 0 is pad.</td></tr></tbody></table>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README Details: 432 demos, 52,970 frames</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L333-L336">array_specs · train.py:333-336</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L572-L586">Batches.batch · train.py:572-586</a></div>
+</section>
+<section class="section"><h2>Model</h2>
+<p>MicroVLA is a joint prefix and action-expert transformer. Vision is a ViT of 4 layers at width 192 with 8-pixel patches, shared by both cameras plus a camera embedding. Six joint blocks run a width-256 prefix and a width-128 action expert in the same attention. The LIBERO config sets 2 cameras, state 8, action 7, and horizon 16. Class defaults in Config are the toy sizes and are not the LIBERO run.</p>
+<p><strong>10.5M total: vision 1.9M, prefix 5.7M, action expert 2.3M. parameter_counts() was not executed in this pass.</strong> <span class="pill verified">verified</span> <div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README model table</a></div></p>
+<p class="meta">The repository was cloned and indexed. MicroVLA was not instantiated, so extracts/model_outline.txt is the AST listing and the 10.5M figure is the README&#x27;s, not a live parameter_counts() print.</p>
+<table><thead><tr><th>Module</th><th>Params</th><th>Detail</th></tr></thead><tbody><tr><td>Vision</td><td>1.9M</td><td>Conv patch embed, 4 pre-norm TransformerEncoder layers, width 192, then a linear map to the prefix width. <div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README vision row</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L96-L114">Vision · train.py:96-114</a></div></td></tr><tr><td>JointBlock</td><td>prefix 5.7M, expert 2.3M</td><td>Six layers. Prefix width 256 with GeGLU MLP 1024. Expert width 128 with adaRMSNorm on the flow time. 4 query heads and 1 KV head, RoPE. <div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README prefix and expert rows</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L159-L183">JointBlock · train.py:159-183</a></div></td></tr><tr><td>MicroVLA</td><td>10.5M</td><td>Embeds images, state bins, and instruction tokens, then denoises the action chunk. sample() takes Euler steps; loss() is the flow-matching MSE. <div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L186-L266">code: train.py MicroVLA</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L186-L266">MicroVLA · train.py:186-266</a></div></td></tr></tbody></table>
+<h3>AST module outline</h3><p class='meta'>Class and constructor assignments parsed from the clone. Parameter totals come only from the fact above.</p><pre>AST outline of classes whose base names contain Module or PreTrainedModel.
+This is not a live torch.nn.Module print and does not count parameters.
+
+RMSNorm  train.py:67
+  bases: nn.Module
+    self.modulation = nn.Linear(width, 3 * width) if adaptive else None
+
+GeGLU  train.py:85
+  bases: nn.Module
+    self.up = nn.Linear(width, 2 * hidden, bias=False)
+    self.down = nn.Linear(hidden, width, bias=False)
+
+Vision  train.py:96
+  bases: nn.Module
+    self.patch = nn.Conv2d(3, c.vit_width, 8, stride=8)
+    self.position = nn.Parameter(torch.randn(1, (c.image_size // 8) ** 2, c.vit_width) * 0.02)
+    self.blocks = nn.ModuleList([nn.TransformerEncoderLayer(c.vit_width, c.vit_heads, 4 * c.vit_width, dropout=0, activation=&#x27;gelu&#x27;, batch_first=True, norm_first=True) for _ in r
+    self.norm = nn.LayerNorm(c.vit_width)
+    self.project = nn.Linear(c.vit_width, c.width)
+
+Expert  train.py:134
+  bases: nn.Module
+    self.attn_norm = RMSNorm(width, adaptive)
+    self.ffn_norm = RMSNorm(width, adaptive)
+    self.qkv = nn.Linear(width, (c.heads + 2) * c.head_dim, bias=False)
+    self.out = nn.Linear(c.heads * c.head_dim, width, bias=False)
+    self.ffn = GeGLU(width, hidden)
+
+JointBlock  train.py:159
+  bases: nn.Module
+    self.prefix = Expert(c.width, c.mlp, c, False)
+    self.action = Expert(c.expert_width, c.expert_mlp, c, True)
+
+MicroVLA  train.py:186
+  bases: nn.Module
+    self.config = config
+    self.vision = Vision(config)
+    self.camera_embedding = nn.Parameter(torch.randn(config.num_cameras, 1, config.width) * 0.02) if config.num_cameras &gt; 1 else None
+    self.tokens = nn.Embedding(config.vocab_size + 256 * config.state_dim, config.width)
+    self.layers = nn.ModuleList([JointBlock(config) for _ in range(config.depth)])
+    self.time_mlp = nn.Sequential(nn.Linear(w, w), nn.SiLU(), nn.Linear(w, w), nn.SiLU())
+    self.action_in = nn.Linear(config.action_dim, w)
+    self.final_norm = RMSNorm(w, True)
+    self.action_out = nn.Linear(w, config.action_dim)
+
+TinyPolicy  train.py:658
+  bases: nn.Module
+    self.ablation = ablation
+    self.model = MicroVLA(Config(**ckpt[&#x27;config&#x27;])).to(device).eval()
+    self.config = SimpleNamespace(chunk_size=self.model.config.horizon, max_action_dim=7, n_action_steps=self.model.config.horizon, use_visual_memory=False, use_proprioceptive_me
+</pre>
+</section>
+<section class="section"><h2>Compute</h2>
+<table><tbody><tr><td>Training defaults</td><td>1,000 distillation steps at batch 16 and lr 1e-3, then 8,000 flow-matching steps at batch 32 and lr 3e-4. AdamW, weight decay 0.01, grad clip 1, 100-step warmup and cosine decay. CUDA autocast is bf16.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L739-L856">code: train.py main defaults and the step loop</a></div></td></tr><tr><td>Reported small-model result</td><td>README: LIBERO-Spatial 270/300 (90%), mean 79 ms per action chunk. The same README times pi0.5 NF4 on an RTX 3050 4 GB.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README LIBERO-Spatial results table</a></div></td></tr></tbody></table>
+</section>
+<section class="section"><h2>Objectives</h2>
+<h3>Flow-matching loss <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\mathcal{L}=\lVert v_\theta((1-t)a+t\epsilon,\ t\mid \text{images, instruction, state})-(\epsilon-a)\rVert^2">\mathcal{L}=\lVert v_\theta((1-t)a+t\epsilon,\ t\mid \text{images, instruction, state})-(\epsilon-a)\rVert^2</div>
+<p>The code draws t from the inverse CDF of Beta(1.5, 1), scaled into (0.001, 1). The noisy action is t * noise + (1 - t) * action. The network regresses noise minus the clean action. The README writes the same path with the opposite interpolation symbol; the linked function is the one that trains.</p>
+<ul><li><code>a</code> — Normalized action chunk, shape (B, 16, 7).</li><li><code>\epsilon</code> — Gaussian noise of the same shape.</li><li><code>t</code> — Per-sample flow time.</li></ul>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README flow-matching display equation</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L260-L266">MicroVLA.loss · train.py:260-266</a></div><h3>SigLIP patch distillation <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\mathcal{L}_{\mathrm{distill}}=(1-\cos(W v, s))+\lVert W v-s\rVert^2">\mathcal{L}_{\mathrm{distill}}=(1-\cos(W v, s))+\lVert W v-s\rVert^2</div>
+<p>For 1,000 steps only the ViT and a linear head train. One camera is chosen at random. Its image is upsampled 2x and passed through a frozen SigLIP-B/16. The loss is one minus cosine similarity plus MSE, after layer-norm on the teacher tokens.</p>
+<ul><li><code>v</code> — ViT patch tokens.</li><li><code>s</code> — Frozen SigLIP last hidden state.</li><li><code>W</code> — Linear head from prefix width to the SigLIP width.</li></ul>
+<div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/README.md">readme: README distillation paragraph</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L835-L849">distillation step · train.py:835-849</a></div>
+</section>
+<section class="section"><h2>Train</h2><div class="step"><strong>1.</strong> Stream or read HuggingFaceVLA/libero and write a cache of two camera images, 8-d state, and 7-d actions. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L399-L411">preprocess · train.py:399-411</a></div></div>
+<div class="step"><strong>2.</strong> Build MicroVLA with 2 cameras, 8-d state, 7-d actions, and the requested horizon, default 16. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L775-L787">main config · train.py:775-787</a></div></div>
+<div class="step"><strong>3.</strong> For 1,000 steps, distill a random camera&#x27;s ViT features onto frozen SigLIP with cosine plus MSE. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L835-L849">distillation step · train.py:835-849</a></div></div>
+<div class="step"><strong>4.</strong> For 8,000 steps, sample a batch, shift-augment the images, and step AdamW on MicroVLA.loss. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L828-L856">training step · train.py:828-856</a></div></div></section>
+<section class="section"><h2>Infer</h2><div class="step"><strong>1.</strong> Load the checkpoint into TinyPolicy, resize both cameras, normalize state, and tokenize the instruction. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L687-L711">TinyPolicy.prepare · train.py:687-711</a></div></div>
+<div class="step"><strong>2.</strong> Cache the prefix, start the chunk from noise, and take Euler steps of the velocity. Default sample() uses 10 steps. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L247-L258">MicroVLA.sample · train.py:247-258</a></div></div>
+<div class="step"><strong>3.</strong> Unnormalize and clamp actions to [-1, 1]. Closed-loop eval executes the first 5 of the chunk, then replans. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/train.py#L720-L729">TinyPolicy.select_action · train.py:720-729</a> · <a href="https://github.com/KhushiJ2911/microVLA/blob/efbb84d8d5073bfeb1fe197ae22eb3e71c5064bd/bench/eval_libero.py#L225-L228">replan default · bench/eval_libero.py:225-228</a></div></div></section>
+<section class="section"><h2>Gaps</h2><ul class="gaps"><li>No PDF is in this repository. The RSS workshop paper that shares the MicroVLA name was not downloaded.</li><li>parameter_counts() was not run, so the 1.9M / 5.7M / 2.3M split is the README figure.</li><li>The LIBERO parquet files were not opened, so the field table is the cache schema rather than a measured sample.</li><li>infer.py benchmarks a separate pi0.5 checkpoint on a 4 GB GPU. Those timings are not the 10.5M model&#x27;s forward pass.</li><li>No example clip aligns a LIBERO frame with a trained MicroVLA checkpoint&#x27;s 7-d action and the logged action chunk.</li></ul></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script>
+document.querySelectorAll(".formula").forEach((el) => {
+  if (window.katex) {
+    katex.render(el.dataset.latex, el, {displayMode: true, throwOnError: false});
+  }
+});
+</script>
+</body>
+</html>

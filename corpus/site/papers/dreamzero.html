@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Action Models are Zero-shot Policies</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f1ea;
+  --ink: #1c1915;
+  --muted: #5e584f;
+  --line: #ddd6c8;
+  --card: #fffdf8;
+  --accent: #0f6e56;
+  --warn: #8a4b08;
+  --bad: #8d2f2f;
+  --code: #efeae0;
+  --link: #0b5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161410;
+    --ink: #f3efe6;
+    --muted: #b7b0a4;
+    --line: #3a342c;
+    --card: #221e19;
+    --accent: #7dcea0;
+    --warn: #e0b15a;
+    --bad: #f0a0a0;
+    --code: #2c271f;
+    --link: #9dc7ff;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+}
+a { color: var(--link); }
+header, main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+main.wide { width: min(1440px, calc(100% - 24px)); }
+.matrix { overflow-x: auto; }
+.matrix td, .matrix th { min-width: 170px; }
+header { padding: 28px 0 8px; }
+h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 8px; }
+h2 { font-size: 1.25rem; margin: 28px 0 8px; }
+.lede, .meta { color: var(--muted); }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px; }
+.nav a, .pill {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--card);
+  text-decoration: none;
+  font: 13px/1.6 ui-sans-serif, system-ui, sans-serif;
+}
+.pill.verified { color: var(--accent); }
+.pill.inferred { color: var(--warn); }
+.pill.missing, .pill.none { color: var(--bad); }
+.section, a.paper-row {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+a.paper-row strong { color: var(--link); }
+table { width: 100%; border-collapse: collapse; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+code, pre { font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+video { width: 100%; max-width: 960px; background: #000; }
+pre {
+  background: var(--code);
+  padding: 12px;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 8px;
+}
+.formula { overflow-x: auto; padding: 8px 0; }
+.step { margin: 0 0 10px; }
+.sources { color: var(--muted); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+ul.gaps { margin-top: 0; }
+</style>
+</head>
+<body>
+<header>
+<p><a href="../index.html">All papers</a></p>
+<h1>World Action Models are Zero-shot Policies</h1>
+<p class="meta">Seonghyeon Ye et al. (NVIDIA) · arXiv 2602.15922 2026</p>
+<p class="nav"><a href="https://arxiv.org/pdf/2602.15922">PDF</a> <a href="https://arxiv.org/abs/2602.15922">arXiv 2602.15922</a> <a href="https://dreamzero0.github.io/">project</a> <a href="https://github.com/dreamzero0/dreamzero">repo ab790c19</a> <span class="pill official">official</span></p>
+<p>Official inference and training code, shallow-cloned at this commit. Checkpoints were not downloaded.</p>
+</header>
+<main>
+<section class="section"><p>DreamZero fine-tunes a pretrained video diffusion backbone to denoise future video latents and robot actions together. The released training path is a causal Wan model: one DiT sees video tokens and action registers, and the loss is a weighted MSE on both velocity targets. The paper&#x27;s main model is Wan2.1-I2V-14B. The class defaults opened in CausalWanModel are a smaller shape, so those defaults are not the 14B width. Closed-loop inference replaces predicted frames with the real observation in the KV cache after each chunk.</p>
+<p class="meta">Joint video-action diffusion, a 14B world-action model · Physical-motion generalization of VLAs that only imitate actions · Local note: not recommended, about 40–80+ GB. The paper&#x27;s speed table uses H100 and GB200.</p>
+
+</section>
+<section class="section"><h2>Task contract</h2>
+<p class="meta">What a new task has to supply before a slot from this method can move.</p>
+<table><tbody><tr><td>Embodiment</td><td>AgiBot G1 teleop and a Franka robot on DROID.</td></tr><tr><td>Action</td><td>Relative joint positions normalized to [-1, 1]. AgiBot uses 48 action steps at 30 Hz. DROID uses 24 action steps at 15 Hz.</td></tr><tr><td>Horizon</td><td>Both settings cover 1.6 seconds. Training packs M=4 chunks of K=2 latent frames. Closed-loop inference writes the real frame back into the KV cache.</td></tr><tr><td>Contact</td><td>Video, text, proprioception, and action. A wrench input was not recorded.</td></tr><tr><td>Latency</td><td>DreamZero-Flash is reported at about 7 Hz on GB200, 5.7 s down to 150 ms. The README also quotes about 0.6 s on GB200 and about 3 s on H100 with DiT caching.</td></tr><tr><td>Data</td><td>AgiBot is about 500 hours and 7.2k episodes. DROID is a separate 100k-step run. Video is sampled at 5 fps.</td></tr></tbody></table>
+<span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 4 and Appendix C</a> · <a href="https://github.com/dreamzero0/dreamzero">readme: README features</a></div>
+<h2>Parts</h2>
+<h3>Observation encoder <span class="pill verified">verified</span></h3>
+<p><strong>Frozen VAE, image encoder, and text encoder in front of a Wan video DiT. The paper&#x27;s main run is Wan2.1-I2V-14B.</strong></p>
+<p>In: Video frames in [-1, 1], text tokens, and proprioception.</p>
+<p>Out: Video tokens and a text embedding for the DiT.</p>
+<p>Frozen: VAE, image encoder, and text encoder. Trained: The DiT and the state encoder.</p>
+<p>Breaks if: The new task has no video sequence, or it cannot host a 14B video backbone.</p>
+<p>Evidence: Section 4 reports a 5B Wan ablation beside the 14B runs. The numeric result of that ablation was not copied onto this card. <span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 4, Training</a></div></p>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3.1 and Section 4</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py#L1254-L1289">CausalWanModel · groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py:1254-1289</a></div><h3>Language or goal <span class="pill verified">verified</span></h3>
+<p><strong>A frozen text encoder over the task prompt.</strong></p>
+<p>In: Token ids, shape (B, length).</p>
+<p>Out: Text embeddings consumed by the video DiT.</p>
+<p>Frozen: The text encoder. Trained: No text-encoder weights train.</p>
+<p>Breaks if: The task has no language prompt the frozen encoder can embed.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3.1</a></div><h3>Memory <span class="pill verified">verified</span></h3>
+<p><strong>A causal KV cache. After each chunk the predicted frame is replaced by the real observation.</strong></p>
+<p>In: Past video and action tokens.</p>
+<p>Out: The cache for the next chunk.</p>
+<p>Frozen: The cache is inference state. Trained: No separate memory network was described.</p>
+<p>Breaks if: The rollout is open-loop and cannot replace a predicted frame with a real one.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3, closed-loop inference</a></div><h3>Action representation <span class="pill verified">verified</span></h3>
+<p><strong>Action registers inside the same DiT that denoises video latents.</strong></p>
+<p>In: Noisy video latents, noisy actions, state, and flow time.</p>
+<p>Out: An action velocity and a video velocity.</p>
+<p>Frozen: The VAE stays frozen, so the action head never trains the decoder of pixels. Trained: Action encoder, action decoder, and the DiT.</p>
+<p>Breaks if: The action is a torque or a compliance command rather than a normalized joint-position chunk.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810">code: WANPolicyHead.forward</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810">WANPolicyHead.forward · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:603-810</a></div><h3>Controller <span class="pill verified">verified</span></h3>
+<p><strong>Execute the decoded relative joint chunk. The paper&#x27;s optimized inference is about 7 Hz.</strong></p>
+<p>In: The denoised action.</p>
+<p>Out: Joint-position commands in the dataset&#x27;s normalization.</p>
+<p>Frozen: Deployed weights. Trained: No impedance controller was described.</p>
+<p>Breaks if: The robot cannot track a joint-position chunk at the chunk&#x27;s rate.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3.2, inference speed</a></div><h3>Objective <span class="pill verified">verified</span></h3>
+<p><strong>One weighted MSE on the video velocity and the action velocity.</strong></p>
+<p>In: Paired video and action trajectories, split into chunks.</p>
+<p>Out: A joint flow-matching loss.</p>
+<p>Frozen: VAE, image encoder, and text encoder. Trained: DiT, state encoder, action encoder, and action decoder. 100k steps, global batch 128.</p>
+<p>Breaks if: The batch has actions and no aligned video, or video and no actions.</p>
+<p>Evidence: The published result is for the whole system. This slot was not isolated. <span class="pill missing">missing</span> </p>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 4</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L760-L810">WANPolicyHead loss · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:760-810</a></div>
+</section>
+<section class="section"><h2>Data</h2>
+<p class="meta">DROID and AgiBot episodes were not downloaded. The sample fields are the tensors WANPolicyHead.forward reads. Volumes are from the paper.</p>
+<p><span class="pill recorded_success">recorded_success</span> AgiBot and DROID training use recorded teleoperated episodes. The model is trained to match the logged action chunk and the video.</p>
+<h3>AgiBot G1 teleop <span class="pill paper">paper</span> <span class="pill verified">verified</span> <span class="pill recorded">recorded</span></h3>
+<p>About 500 hours, 7.2k episodes, 22 environments. Episodes average about 4.4 minutes and about 42 subtasks. Video is sampled at 5 fps and actions at 30 Hz, horizon 48, which is 1.6 seconds per chunk.</p>
+<p>Idle actions are filtered. Relative joint positions are the default action. Training samples a trajectory and splits it into M=4 chunks of K=2 latent frames.</p>
+<p>The data transform package includes crop, color jitter, and related video transforms. Which of those the 14B run enabled was not confirmed in the training config.</p>
+<p>Recorded real_robot: AgiBot G1 teleop. Teleoperated episodes. Idle actions are filtered.</p>
+<p>Feeds gradient: true. Golden action_chunk: The logged relative joint-position chunk is the action target, trained jointly with the video velocity.</p>
+<p><strong>Example</strong> <span class="pill missing">missing</span> none. Checkpoint action <code>action</code> dim None. No clip aligns a AgiBot frame with a trained DreamZero checkpoint&#x27;s action and the logged action chunk.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>images</code></td><td>uint8 then normalized to [-1, 1]</td><td><code>(B, T, H, W, C)</code></td><td>Rearranged to (B, C, T, H, W) before the VAE</td></tr><tr><td><code>text</code></td><td>tokens</td><td><code>(B, length)</code></td><td>Frozen text encoder</td></tr><tr><td><code>state</code></td><td>proprioception</td><td><code>(B, time, state_dim)</code></td><td></td></tr><tr><td><code>action</code></td><td>normalized</td><td><code>(B, time, action_dim)</code></td><td>Asserted in [-1, 1]</td></tr></tbody></table>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 4 and Appendix C</a></div><h3>DROID <span class="pill paper">paper</span> <span class="pill verified">verified</span> <span class="pill recorded">recorded</span></h3>
+<p>Trained 100k steps at global batch 128, separate from the AgiBot run. Video 5 fps, actions 15 Hz, horizon 24, again 1.6 seconds. Eval is 20 seen and 20 unseen tasks, 2 rollouts each.</p>
+<p>Same chunking. The README points at a DROID checkpoint and a conversion script.</p>
+<p>Not confirmed for the released run.</p>
+<p>Recorded real_robot: DROID. The released Franka teleoperation set used for the separate 100k-step run.</p>
+<p>Feeds gradient: true. Golden action_chunk: The logged relative joint-position chunk is the action target, trained jointly with the video velocity.</p>
+<p><strong>Example</strong> <span class="pill missing">missing</span> none. Checkpoint action <code>action</code> dim None. No clip aligns a DROID frame with a trained DreamZero checkpoint&#x27;s action and the logged action chunk.</p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Shape</th><th>Note</th></tr></thead><tbody><tr><td><code>images</code></td><td>uint8</td><td><code>(B, T, H, W, C)</code></td><td>Same head as AgiBot</td></tr><tr><td><code>action</code></td><td>float in [-1, 1]</td><td><code>(B, horizon, action_dim)</code></td><td>Relative joint positions in the paper&#x27;s default</td></tr></tbody></table>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Training paragraph and Appendix C</a> · <a href="https://github.com/dreamzero0/dreamzero">readme: README checkpoint section</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810">WANPolicyHead.forward · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:603-810</a></div>
+</section>
+<section class="section"><h2>Model</h2>
+<p>A Wan video DiT with action and state registers. The VAE, image encoder, and text encoder stay frozen. The DiT, state encoder, action encoder, and action decoder train. CausalWanModel is the backbone class. Its __init__ defaults (dim 2048, 32 layers, 16 heads, ffn 8192) are not the Wan2.1-I2V-14B shape; the 14B width is selected by the checkpoint config.</p>
+<p><strong>14B for the Wan2.1-I2V-14B runs. A 5B Wan ablation is also reported. Added parameters are the state and action encoder/decoder.</strong> <span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 4, Training</a></div></p>
+<p class="meta">AST outline is in extracts/model_outline.txt (75 Module-like classes). The 14B checkpoint was not downloaded and the model was not constructed.</p>
+<table><thead><tr><th>Module</th><th>Params</th><th>Detail</th></tr></thead><tbody><tr><td>CausalWanModel</td><td>14B when loaded from Wan2.1-I2V-14B</td><td>Autoregressive DiT. Class defaults are a smaller config and must not be read as the 14B width. <div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3.1 and Section 4</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py#L1254-L1289">CausalWanModel · groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py:1254-1289</a></div></td></tr><tr><td>WANPolicyHead</td><td></td><td>Encodes video, prompt, and image, noises both modalities, and returns the sum of weighted MSEs. <div class="sources"><a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py">code: WANPolicyHead.forward</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810">WANPolicyHead.forward · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:603-810</a></div></td></tr><tr><td>Frozen encoders</td><td></td><td>Text encoder, image encoder, and VAE are frozen. <div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 4, Training</a></div></td></tr></tbody></table>
+<h3>AST module outline</h3><p class='meta'>Class and constructor assignments parsed from the clone. Parameter totals come only from the fact above.</p><pre>AST outline of classes whose base names contain Module or PreTrainedModel.
+This is not a live torch.nn.Module print and does not count parameters.
+
+WanTrtModel5B  groot/control/tensorrt_utils.py:554
+  bases: torch.nn.Module
+    self.engine = Engine(eng_path)
+
+WanTrtModel14B  groot/control/tensorrt_utils.py:588
+  bases: torch.nn.Module
+    self.engine = Engine(eng_path)
+
+WanTrtModelAr5B  groot/control/tensorrt_utils.py:628
+  bases: torch.nn.Module
+    self.engine = Engine(eng_path)
+
+WanTrtModelAr14B  groot/control/tensorrt_utils.py:675
+  bases: torch.nn.Module
+    self.engine = Engine(eng_path)
+
+DDPMethodWrapper  groot/vla/common/utils/misc/torch_utils.py:316
+  bases: nn.Module
+    self.net = net
+    self._method_name = method_name
+
+Backbone  groot/vla/model/dreamzero/backbone/base_backbone.py:7
+  bases: ABC, nn.Module
+
+VLA  groot/vla/model/dreamzero/base_vla.py:43
+  bases: PreTrainedModel
+    self.backbone = instantiate(config.backbone_cfg)
+    self.action_head = instantiate(config.action_head_cfg)
+    self.action_horizon = config.action_horizon
+    self.action_dim = config.action_dim
+    self.compute_dtype = config.compute_dtype
+    self.rank = dist.get_rank() if dist.is_initialized() else 0
+
+DotProductAttention  groot/vla/model/dreamzero/modules/cudnn_attention.py:49
+  bases: torch.nn.Module
+    self.qkv_format = qkv_format
+    self.attn_mask_type = attn_mask_type
+    self.softmax_scale = 1.0 / math.sqrt(kv_channels if isinstance(kv_channels, int) else kv_channels[0])
+    self.attention_dropout = attention_dropout
+    self.softmax_type = &#x27;vanilla&#x27;
+    self.window_size = dpa_utils.check_set_window_size(attn_mask_type)
+    self.fused_attention = FusedAttention(self.softmax_scale, deterministic=False, attention_dropout=self.attention_dropout, softmax_type=self.softmax_type)
+
+FusedAttention  groot/vla/model/dreamzero/modules/cudnn_attention.py:154
+  bases: torch.nn.Module
+    self.softmax_scale = softmax_scale
+    self.attention_dropout = attention_dropout
+    self.deterministic = deterministic
+    self.softmax_type = softmax_type
+
+AutoTorchModule  groot/vla/model/dreamzero/modules/vram_management.py:11
+  bases: torch.nn.Module
+
+AutoWrappedModule  groot/vla/model/dreamzero/modules/vram_management.py:36
+  bases: AutoTorchModule
+    self.module = module.to(dtype=offload_dtype, device=offload_device)
+    self.offload_dtype = offload_dtype
+    self.offload_device = offload_device
+    self.onload_dtype = onload_dtype
+    self.onload_device = onload_device
+    self.computation_dtype = computation_dtype
+    self.computation_device = computation_device
+    self.vram_limit = vram_limit
+    self.state = 0
+
+WanAutoCastLayerNorm  groot/vla/model/dreamzero/modules/vram_management.py:63
+  bases: torch.nn.LayerNorm, AutoTorchModule
+    self.weight = module.weight
+    self.bias = module.bias
+    self.offload_dtype = offload_dtype
+    self.offload_device = offload_device
+    self.onload_dtype = onload_dtype
+    self.onload_device = onload_device
+    self.computation_dtype = computation_dtype
+    self.computation_device = computation_device
+    self.vram_limit = vram_limit
+    self.state = 0
+
+AutoWrappedLinear  groot/vla/model/dreamzero/modules/vram_management.py:95
+  bases: torch.nn.Linear, AutoTorchModule
+    self.weight = module.weight
+    self.bias = module.bias
+    self.offload_dtype = offload_dtype
+    self.offload_device = offload_device
+    self.onload_dtype = onload_dtype
+    self.onload_device = onload_device
+    self.computation_dtype = computation_dtype
+    self.computation_device = computation_device
+    self.vram_limit = vram_limit
+    self.state = 0
+    self.name = name
+    self.lora_A_weights = []
+
+AttentionModule  groot/vla/model/dreamzero/modules/wan2_1_attention.py:205
+  bases: torch.nn.Module
+    self.backend = backend
+
+WanRMSNorm  groot/vla/model/dreamzero/modules/wan2_1_submodule.py:162
+  bases: nn.Module
+    self.dim = dim
+    self.eps = eps
+    self.weight = nn.Parameter(torch.ones(dim))
+
+WanSelfAttention  groot/vla/model/dreamzero/modules/wan2_1_submodule.py:187
+  bases: nn.Module
+    self.dim = dim
+    self.num_heads = num_heads
+    self.head_dim = dim // num_heads
+    self.window_size = window_size
+    self.qk_norm = qk_norm
+    self.eps = eps
+    self.q = nn.Linear(dim, dim)
+    self.k = nn.Linear(dim, dim)
+    self.v = nn.Linear(dim, dim)
+    self.o = nn.Linear(dim, dim)
+    self.norm_q = WanRMSNorm(dim, eps=eps) if qk_norm else nn.Identity()
+    self.norm_k = WanRMSNorm(dim, eps=eps) if qk_norm else nn.Identity()
+
+WanAttentionBlock  groot/vla/model/dreamzero/modules/wan2_1_submodule.py:370
+  bases: nn.Module
+    self.dim = dim
+    self.ffn_dim = ffn_dim
+    self.num_heads = num_heads
+    self.window_size = window_size
+    self.qk_norm = qk_norm
+    self.cross_attn_norm = cross_attn_norm
+    self.eps = eps
+    self.norm1 = WanLayerNorm(dim, eps)
+    self.self_attn = WanSelfAttention(dim, num_heads, window_size, qk_norm, eps)
+    self.norm3 = WanLayerNorm(dim, eps, elementwise_affine=True) if cross_attn_norm else nn.Identity()
+    self.cross_attn = WAN_CROSSATTENTION_CLASSES[cross_attn_type](dim, num_heads, (-1, -1), qk_norm, eps)
+    self.norm2 = WanLayerNorm(dim, eps)
+
+GanAttentionBlock  groot/vla/model/dreamzero/modules/wan2_1_submodule.py:453
+  bases: nn.Module
+    self.dim = dim
+    self.ffn_dim = ffn_dim
+    self.num_heads = num_heads
+    self.window_size = window_size
+    self.qk_norm = qk_norm
+    self.cross_attn_norm = cross_attn_norm
+    self.eps = eps
+    self.norm3 = WanLayerNorm(dim, eps, elementwise_affine=True) if cross_attn_norm else nn.Identity()
+    self.norm2 = WanLayerNorm(dim, eps)
+    self.ffn = nn.Sequential(nn.Linear(dim, ffn_dim), nn.GELU(approximate=&#x27;tanh&#x27;), nn.Linear(ffn_dim, dim))
+    self.cross_attn = WanGanCrossAttention(dim, num_heads, (-1, -1), qk_norm, eps)
+
+Head  groot/vla/model/dreamzero/modules/wan2_1_submodule.py:535
+  bases: nn.Module
+    self.dim = dim
+    self.out_dim = out_dim
+    self.patch_size = patch_size
+    self.eps = eps
+    self.norm = WanLayerNorm(dim, eps)
+    self.head = nn.Linear(dim, out_dim)
+    self.modulation = nn.Parameter(torch.randn(1, 2, dim) / dim ** 0.5)
+
+MLPProj  groot/vla/model/dreamzero/modules/wan2_1_submodule.py:565
+  bases: torch.nn.Module
+    self.proj = torch.nn.Sequential(torch.nn.LayerNorm(in_dim), torch.nn.Linear(in_dim, in_dim), torch.nn.GELU(), torch.nn.Linear(in_dim, out_dim), torch.nn.LayerNorm(out_dim))
+
+RegisterTokens  groot/vla/model/dreamzero/modules/wan2_1_submodule.py:580
+  bases: nn.Module
+    self.register_tokens = nn.Parameter(torch.randn(num_registers, dim) * 0.02)
+    self.rms_norm = WanRMSNorm(dim, eps=1e-06)
+
+SimpleAdapter  groot/vla/model/dreamzero/modules/wan_video_camera_controller.py:8
+  bases: nn.Module
+    self.pixel_unshuffle = nn.PixelUnshuffle(downscale_factor=8)
+    self.conv = nn.Conv2d(in_dim * 64, out_dim, kernel_size=kernel_size, stride=stride, padding=0)
+    self.residual_blocks = nn.Sequential(*[ResidualBlock(out_dim) for _ in range(num_residual_blocks)])
+
+ResidualBlock  groot/vla/model/dreamzero/modules/wan_video_camera_controller.py:63
+  bases: nn.Module
+    self.conv1 = nn.Conv2d(dim, dim, kernel_size=3, padding=1)
+    self.relu = nn.ReLU(inplace=True)
+    self.conv2 = nn.Conv2d(dim, dim, kernel_size=3, padding=1)
+
+RMSNorm  groot/vla/model/dreamzero/modules/wan_video_dit.py:133
+  bases: nn.Module
+    self.eps = eps
+    self.weight = nn.Parameter(torch.ones(dim))
+
+RotaryPositionEmbeddingNoPolarOp  groot/vla/model/dreamzero/modules/wan_video_dit.py:165
+  bases: nn.Module
+    self.num_heads = num_heads
+    self.head_dim = head_dim
+    self.freqs = self.precompute_freqs_cis_3d(head_dim)
+
+RotaryPositionEmbeddingWithPolarOp  groot/vla/model/dreamzero/modules/wan_video_dit.py:215
+  bases: nn.Module
+    self.num_heads = num_heads
+    self.head_dim = head_dim
+    self.freqs = self.precompute_freqs_cis_3d(head_dim)
+
+AttentionModule  groot/vla/model/dreamzero/modules/wan_video_dit.py:252
+  bases: nn.Module
+    self.num_heads = num_heads
+
+SelfAttention  groot/vla/model/dreamzero/modules/wan_video_dit.py:262
+  bases: nn.Module
+    self.dim = dim
+    self.num_heads = num_heads
+    self.head_dim = dim // num_heads
+    self.q = nn.Linear(dim, dim)
+    self.k = nn.Linear(dim, dim)
+    self.v = nn.Linear(dim, dim)
+    self.o = nn.Linear(dim, dim)
+    self.norm_q = _RMSNorm(dim, eps=eps)
+    self.norm_k = _RMSNorm(dim, eps=eps)
+    self.attn = AttentionModule(self.num_heads)
+
+CrossAttention  groot/vla/model/dreamzero/modules/wan_video_dit.py:288
+  bases: nn.Module
+    self.dim = dim
+    self.num_heads = num_heads
+    self.head_dim = dim // num_heads
+    self.q = nn.Linear(dim, dim)
+    self.k = nn.Linear(dim, dim)
+    self.v = nn.Linear(dim, dim)
+    self.o = nn.Linear(dim, dim)
+    self.norm_q = _RMSNorm(dim, eps=eps)
+    self.norm_k = _RMSNorm(dim, eps=eps)
+    self.has_image_input = has_image_input
+    self.attn = AttentionModule(self.num_heads)
+
+GateModule  groot/vla/model/dreamzero/modules/wan_video_dit.py:327
+  bases: nn.Module
+
+DiTBlock  groot/vla/model/dreamzero/modules/wan_video_dit.py:335
+  bases: nn.Module
+    self.dim = dim
+    self.num_heads = num_heads
+    self.ffn_dim = ffn_dim
+    self.self_attn = SelfAttention(dim, num_heads, eps)
+    self.cross_attn = CrossAttention(dim, num_heads, eps, has_image_input=has_image_input)
+    self.norm1 = nn.LayerNorm(dim, eps=eps, elementwise_affine=False)
+    self.norm2 = nn.LayerNorm(dim, eps=eps, elementwise_affine=False)
+    self.norm3 = nn.LayerNorm(dim, eps=eps)
+    self.ffn = nn.Sequential(nn.Linear(dim, ffn_dim), nn.GELU(approximate=&#x27;tanh&#x27;), nn.Linear(ffn_dim, dim))
+    self.modulation = nn.Parameter(torch.randn(1, 6, dim) / dim ** 0.5)
+    self.gate = GateModule()
+
+MLP  groot/vla/model/dreamzero/modules/wan_video_dit.py:365
+  bases: torch.nn.Module
+    self.proj = torch.nn.Sequential(nn.LayerNorm(in_dim), nn.Linear(in_dim, in_dim), nn.GELU(), nn.Linear(in_dim, out_dim), nn.LayerNorm(out_dim))
+    self.has_pos_emb = has_pos_emb
+
+Head  groot/vla/model/dreamzero/modules/wan_video_dit.py:385
+  bases: nn.Module
+    self.dim = dim
+    self.patch_size = patch_size
+    self.norm = nn.LayerNorm(dim, eps=eps, elementwise_affine=False)
+    self.head = nn.Linear(dim, out_dim * math.prod(patch_size))
+    self.modulation = nn.Parameter(torch.randn(1, 2, dim) / dim ** 0.5)
+
+CategorySpecificLinear  groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py:31
+  bases: nn.Module
+    self.num_categories = num_categories
+    self.W = nn.Parameter(0.02 * torch.randn(num_categories, input_dim, hidden_dim))
+    self.b = nn.Parameter(torch.zeros(num_categories, hidden_dim))
+
+CategorySpecificMLP  groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py:45
+  bases: nn.Module
+    self.num_categories = num_categories
+    self.layer1 = CategorySpecificLinear(num_categories, input_dim, hidden_dim)
+    self.layer2 = CategorySpecificLinear(num_categories, hidden_dim, output_dim)
+
+MultiEmbodimentActionEncoder  groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py:57
+  bases: nn.Module
+    self.hidden_size = hidden_size
+    self.num_embodiments = num_embodiments
+    self.W1 = CategorySpecificLinear(num_embodiments, action_dim, hidden_size)
+    self.W2 = CategorySpecificLinear(num_embodiments, 2 * hidden_size, hidden_size)
+    self.W3 = CategorySpecificLinear(num_embodiments, hidden_size, hidden_size)
+    self.pos_encoding = SinusoidalPositionalEncoding(hidden_size)
+
+CausalWanSelfAttention  groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py:188
+  bases: nn.Module
+    self.dim = dim
+    self.num_heads = num_heads
+    self.head_dim = dim // num_heads
+    self.local_attn_size = local_attn_size
+    self.sink_size = sink_size
+    self.num_frame_per_block = num_frame_per_block
+    self.qk_norm = qk_norm
+    self.eps = eps
+    self.max_attention_size = 21 * frame_seqlen if local_attn_size == -1 else local_attn_size * frame_seqlen
+    self.frame_seqlen = frame_seqlen
+    self.num_action_per_block = num_action_per_block
+    self.num_state_per_block = num_state_per_block
+
+CausalWanAttentionBlock  groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py:1096
+  bases: nn.Module
+    self.dim = dim
+    self.ffn_dim = ffn_dim
+    self.num_heads = num_heads
+    self.local_attn_size = local_attn_size
+    self.qk_norm = qk_norm
+    self.cross_attn_norm = cross_attn_norm
+    self.eps = eps
+    self.norm1 = WanLayerNorm(dim, eps)
+    self.self_attn = CausalWanSelfAttention(dim=dim, num_heads=num_heads, frame_seqlen=frame_seqlen, local_attn_size=local_attn_size, sink_size=sink_size, num_frame_per_block=num_fr
+    self.norm3 = WanLayerNorm(dim, eps, elementwise_affine=True) if cross_attn_norm else nn.Identity()
+    self.cross_attn = WAN_CROSSATTENTION_CLASSES[cross_attn_type](dim, num_heads, (-1, -1), qk_norm, eps)
+    self.norm2 = WanLayerNorm(dim, eps)
+
+CausalHead  groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py:1213
+  bases: nn.Module
+    self.dim = dim
+    self.out_dim = out_dim
+    self.patch_size = patch_size
+    self.eps = eps
+    self.norm = WanLayerNorm(dim, eps)
+    self.head = nn.Linear(dim, out_dim)
+    self.modulation = nn.Parameter(torch.randn(1, 2, dim) / dim ** 0.5)
+
+SelfAttention  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:14
+  bases: nn.Module
+    self.dim = dim
+    self.num_heads = num_heads
+    self.head_dim = dim // num_heads
+    self.eps = eps
+    self.q = nn.Linear(dim, dim)
+    self.k = nn.Linear(dim, dim)
+    self.v = nn.Linear(dim, dim)
+    self.o = nn.Linear(dim, dim)
+    self.dropout = nn.Dropout(dropout)
+
+AttentionBlock  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:53
+  bases: nn.Module
+    self.dim = dim
+    self.num_heads = num_heads
+    self.post_norm = post_norm
+    self.eps = eps
+    self.attn = SelfAttention(dim, num_heads, dropout, eps)
+    self.norm1 = nn.LayerNorm(dim, eps=eps)
+    self.ffn = nn.Sequential(nn.Linear(dim, dim * 4), nn.GELU(), nn.Linear(dim * 4, dim), nn.Dropout(dropout))
+    self.norm2 = nn.LayerNorm(dim, eps=eps)
+
+XLMRoberta  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:80
+  bases: nn.Module
+    self.vocab_size = vocab_size
+    self.max_seq_len = max_seq_len
+    self.type_size = type_size
+    self.pad_id = pad_id
+    self.dim = dim
+    self.num_heads = num_heads
+    self.num_layers = num_layers
+    self.post_norm = post_norm
+    self.eps = eps
+    self.token_embedding = nn.Embedding(vocab_size, dim, padding_idx=pad_id)
+    self.type_embedding = nn.Embedding(type_size, dim)
+    self.pos_embedding = nn.Embedding(max_seq_len, dim, padding_idx=pad_id)
+
+QuickGELU  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:222
+  bases: nn.Module
+
+SelfAttention  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:234
+  bases: nn.Module
+    self.dim = dim
+    self.num_heads = num_heads
+    self.head_dim = dim // num_heads
+    self.causal = causal
+    self.attn_dropout = attn_dropout
+    self.proj_dropout = proj_dropout
+    self.to_qkv = nn.Linear(dim, dim * 3)
+    self.proj = nn.Linear(dim, dim)
+
+SwiGLU  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:271
+  bases: nn.Module
+    self.dim = dim
+    self.mid_dim = mid_dim
+    self.fc1 = nn.Linear(dim, mid_dim)
+    self.fc2 = nn.Linear(dim, mid_dim)
+    self.fc3 = nn.Linear(mid_dim, dim)
+
+AttentionBlock  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:289
+  bases: nn.Module
+    self.dim = dim
+    self.mlp_ratio = mlp_ratio
+    self.num_heads = num_heads
+    self.post_norm = post_norm
+    self.causal = causal
+    self.norm_eps = norm_eps
+    self.norm1 = LayerNorm(dim, eps=norm_eps)
+    self.attn = SelfAttention(dim, num_heads, causal, attn_dropout, proj_dropout)
+    self.norm2 = LayerNorm(dim, eps=norm_eps)
+
+AttentionPool  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:333
+  bases: nn.Module
+    self.dim = dim
+    self.mlp_ratio = mlp_ratio
+    self.num_heads = num_heads
+    self.head_dim = dim // num_heads
+    self.proj_dropout = proj_dropout
+    self.norm_eps = norm_eps
+    self.cls_embedding = nn.Parameter(gain * torch.randn(1, 1, dim))
+    self.to_q = nn.Linear(dim, dim)
+    self.to_kv = nn.Linear(dim, dim * 2)
+    self.proj = nn.Linear(dim, dim)
+    self.norm = LayerNorm(dim, eps=norm_eps)
+    self.mlp = nn.Sequential(nn.Linear(dim, int(dim * mlp_ratio)), QuickGELU() if activation == &#x27;quick_gelu&#x27; else nn.GELU(), nn.Linear(int(dim * mlp_ratio), dim), nn.Dropout(p
+
+VisionTransformer  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:386
+  bases: nn.Module
+    self.image_size = image_size
+    self.patch_size = patch_size
+    self.num_patches = (image_size // patch_size) ** 2
+    self.dim = dim
+    self.mlp_ratio = mlp_ratio
+    self.out_dim = out_dim
+    self.num_heads = num_heads
+    self.num_layers = num_layers
+    self.pool_type = pool_type
+    self.post_norm = post_norm
+    self.norm_eps = norm_eps
+    self.patch_embedding = nn.Conv2d(3, dim, kernel_size=patch_size, stride=patch_size, bias=not pre_norm)
+
+CLIP  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:485
+  bases: nn.Module
+    self.embed_dim = embed_dim
+    self.image_size = image_size
+    self.patch_size = patch_size
+    self.vision_dim = vision_dim
+    self.vision_mlp_ratio = vision_mlp_ratio
+    self.vision_heads = vision_heads
+    self.vision_layers = vision_layers
+    self.vision_pool = vision_pool
+    self.vision_pre_norm = vision_pre_norm
+    self.vision_post_norm = vision_post_norm
+    self.vocab_size = vocab_size
+    self.text_len = text_len
+
+XLMRobertaCLIP  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:646
+  bases: nn.Module
+    self.embed_dim = embed_dim
+    self.image_size = image_size
+    self.patch_size = patch_size
+    self.vision_dim = vision_dim
+    self.vision_mlp_ratio = vision_mlp_ratio
+    self.vision_heads = vision_heads
+    self.vision_layers = vision_layers
+    self.vision_pre_norm = vision_pre_norm
+    self.vision_post_norm = vision_post_norm
+    self.activation = activation
+    self.vocab_size = vocab_size
+    self.max_text_len = max_text_len
+
+WanImageEncoder  groot/vla/model/dreamzero/modules/wan_video_image_encoder.py:856
+  bases: torch.nn.Module
+    self.image_encoder_pretrained_path = image_encoder_pretrained_path
+
+GELU  groot/vla/model/dreamzero/modules/wan_video_text_encoder.py:15
+  bases: nn.Module
+
+T5LayerNorm  groot/vla/model/dreamzero/modules/wan_video_text_encoder.py:22
+  bases: nn.Module
+    self.dim = dim
+    self.eps = eps
+    self.weight = nn.Parameter(torch.ones(dim))
+
+T5Attention  groot/vla/model/dreamzero/modules/wan_video_text_encoder.py:38
+  bases: nn.Module
+    self.dim = dim
+    self.dim_attn = dim_attn
+    self.num_heads = num_heads
+    self.head_dim = dim_attn // num_heads
+    self.q = nn.Linear(dim, dim_attn, bias=False)
+    self.k = nn.Linear(dim, dim_attn, bias=False)
+    self.v = nn.Linear(dim, dim_attn, bias=False)
+    self.o = nn.Linear(dim_attn, dim, bias=False)
+    self.dropout = nn.Dropout(dropout)
+
+T5FeedForward  groot/vla/model/dreamzero/modules/wan_video_text_encoder.py:92
+  bases: nn.Module
+    self.dim = dim
+    self.dim_ffn = dim_ffn
+    self.gate = nn.Sequential(nn.Linear(dim, dim_ffn, bias=False), GELU())
+    self.fc1 = nn.Linear(dim, dim_ffn, bias=False)
+    self.fc2 = nn.Linear(dim_ffn, dim, bias=False)
+    self.dropout = nn.Dropout(dropout)
+
+T5SelfAttention  groot/vla/model/dreamzero/modules/wan_video_text_encoder.py:113
+  bases: nn.Module
+    self.dim = dim
+    self.dim_attn = dim_attn
+    self.dim_ffn = dim_ffn
+    self.num_heads = num_heads
+    self.num_buckets = num_buckets
+    self.shared_pos = shared_pos
+    self.norm1 = T5LayerNorm(dim)
+    self.attn = T5Attention(dim, dim_attn, num_heads, dropout)
+    self.norm2 = T5LayerNorm(dim)
+    self.ffn = T5FeedForward(dim, dim_ffn, dropout)
+    self.pos_embedding = None if shared_pos else T5RelativeEmbedding(num_buckets, num_heads, bidirectional=True)
+
+T5RelativeEmbedding  groot/vla/model/dreamzero/module</pre>
+</section>
+<section class="section"><h2>Compute</h2>
+<table><tbody><tr><td>Main training</td><td>100k steps, global batch 128, separately for AgiBot and for DROID. The GPU count of that run was not extracted. Ablations use 50k steps and batch 32.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 4 and Section 5.2</a></div></td></tr><tr><td>Inference speed</td><td>The paper&#x27;s table: system optimizations about 9x on H100 and about 16x on GB200; DreamZero-Flash reaches 38x on GB200, 5.7 s down to 150 ms, about 7 Hz. The README also quotes about 0.6 s on GB200 and about 3 s on H100 with DiT caching.</td><td><span class="pill verified">verified</span> <div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3.2</a> · <a href="https://github.com/dreamzero0/dreamzero">readme: README features</a></div></td></tr></tbody></table>
+</section>
+<section class="section"><h2>Objectives</h2>
+<h3>Shared interpolation <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="z_{t_k}^{k}=t_k z_1^{k}+(1-t_k)z_0^{k},\quad a_{t_k}^{k}=t_k a_1^{k}+(1-t_k)a_0^{k}">z_{t_k}^{k}=t_k z_1^{k}+(1-t_k)z_0^{k},\quad a_{t_k}^{k}=t_k a_1^{k}+(1-t_k)a_0^{k}</div>
+<p>Clean latent and clean action sit at t=1. Noise sits at t=0. In the default objective a chunk shares one timestep across video and action. DreamZero-Flash draws them separately: video time from Beta(7, 1), action time uniform.</p>
+<ul><li><code>z_1</code> — Clean VAE latent of the video chunk.</li><li><code>a_1</code> — Normalized action chunk.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Eq. 2 and Algorithm 1</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810">WANPolicyHead.forward · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:603-810</a></div><h3>Joint velocity loss <span class="pill verified">verified</span></h3>
+<div class="formula" data-latex="\mathcal{L}(\theta)=\mathbb{E}\frac{1}{K}\sum_k w(t_k)\big\lVert u_\theta([z_{t_k}^{k},a_{t_k}^{k}];\mathcal{C}_k,c,q_k,t_k)-v^{k}\big\rVert^2">\mathcal{L}(\theta)=\mathbb{E}\frac{1}{K}\sum_k w(t_k)\big\lVert u_\theta([z_{t_k}^{k},a_{t_k}^{k}];\mathcal{C}_k,c,q_k,t_k)-v^{k}\big\rVert^2</div>
+<p>The target velocity is the clean pair minus the noise pair. Context C_k is the clean previous chunks (teacher forcing). The opened implementation splits this into a weighted video MSE plus a weighted action MSE, and gates the action term with the action mask and has_real_action.</p>
+<ul><li><code>v^{k}</code> — [z_1, a_1] - [z_0, a_0].</li><li><code>w(t)</code> — Scheduler training weight.</li><li><code>\mathcal{C}_k</code> — Clean latents and actions of earlier chunks.</li></ul>
+<div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Eq. 3</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L760-L810">WANPolicyHead.forward loss · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:760-810</a></div>
+</section>
+<section class="section"><h2>Train</h2><div class="step"><strong>1.</strong> Encode the clip with the frozen VAE and the prompt with the frozen text encoder. Normalize uint8 video into [-1, 1]. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810">WANPolicyHead.forward · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:603-810</a></div></div>
+<div class="step"><strong>2.</strong> Split the trajectory into chunks. Sample a timestep. Unless Flash decoupling is on, video and action share it. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Algorithm 1</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810">WANPolicyHead.forward · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:603-810</a></div></div>
+<div class="step"><strong>3.</strong> Interpolate toward noise, run the causal DiT on the noisy latent and the noisy action, and add the weighted video MSE to the weighted action MSE. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L760-L810">WANPolicyHead.forward loss · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:760-810</a></div></div>
+<div class="step"><strong>4.</strong> Teacher-force the previous chunks as clean context. Update the DiT and the action/state heads. Leave the text encoder, image encoder, and VAE frozen. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3.1 and Section 4</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810">WANPolicyHead.forward · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:603-810</a></div></div></section>
+<section class="section"><h2>Infer</h2><div class="step"><strong>1.</strong> The server converts the observation and calls the causal joint video-action sampler. <span class="pill verified">verified</span><div class="sources"><a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/eval_utils/serve_dreamzero_wan22.py#L255-L273">DreamZeroWan225BPolicy.infer · eval_utils/serve_dreamzero_wan22.py:255-273</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L973-L1007">WANPolicyHead.lazy_joint_video_action · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:973-1007</a></div></div>
+<div class="step"><strong>2.</strong> Denoise the next video chunk and action chunk. Execute the action chunk. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3.1, Model Inference</a> · <a href="https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L973-L1007">WANPolicyHead.lazy_joint_video_action · groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py:973-1007</a></div></div>
+<div class="step"><strong>3.</strong> After execution, write the real observation back into the KV cache in place of the predicted frames. <span class="pill verified">verified</span><div class="sources"><a href="https://arxiv.org/pdf/2602.15922">pdf: Section 3.1, Model Inference</a></div></div></section>
+<section class="section"><h2>Gaps</h2><ul class="gaps"><li>The 14B checkpoint was not downloaded, and CausalWanModel was not constructed, so the printed module is the AST outline. Class defaults are not the 14B shape.</li><li>The GPU count for the 100k-step batch-128 run was not extracted.</li><li>Which video augmentations were enabled for the released 14B run was not confirmed.</li><li>No episode file was opened, so the field table is the tensor contract, not a measured sample.</li><li>No example clip aligns a teleop frame with a trained DreamZero checkpoint&#x27;s action and the logged action chunk.</li></ul></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
+<script>
+document.querySelectorAll(".formula").forEach((el) => {
+  if (window.katex) {
+    katex.render(el.dataset.latex, el, {displayMode: true, throwOnError: false});
+  }
+});
+</script>
+</body>
+</html>

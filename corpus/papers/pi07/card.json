@@ -1,0 +1,493 @@
+{
+  "id": "pi07",
+  "identity": {
+    "title": "pi0.7: a Steerable Generalist Robotic Foundation Model with Emergent Capabilities",
+    "authors": [
+      "Physical Intelligence"
+    ],
+    "venue": "arXiv 2604.15483",
+    "year": 2026,
+    "arxiv": "2604.15483",
+    "pdf_url": "https://arxiv.org/pdf/2604.15483",
+    "pdf_path": "paper.pdf",
+    "project_url": "https://www.pi.website/blog/pi07",
+    "repo_url": null,
+    "repo_commit": null,
+    "repo_role": "none",
+    "repo_note": "Physical-Intelligence/openpi documents pi0, pi0-FAST, and pi0.5. It does not contain pi0.7. That repository was not cloned as this paper's code.",
+    "distinct_from": [
+      {
+        "name": "Physical-Intelligence/openpi",
+        "url": "https://github.com/Physical-Intelligence/openpi",
+        "why": "Related earlier models. The README's model list stops at pi0.5."
+      }
+    ]
+  },
+  "summary": "pi0.7 is a 5B flow-matching VLA, a Gemma3 4B backbone plus an 860M action expert, trained with a richer prompt than a task sentence: detailed language, episode metadata, control-modality labels, and multi-view subgoal images. A separate 14B BAGEL model generates those subgoals. The paper's claim is that this context lets the VLA train on mixed-quality and non-robot data without averaging incompatible strategies. There is no public implementation to link.",
+  "landscape": {
+    "paradigm": "Steerable VLA plus a subgoal world model",
+    "bottleneck": "Compositional skill recombination and failure recovery",
+    "hardware_fit": "Local note: scaled-down expert via cached VLM features. The paper's full model is about 5B, and the subgoal model is a separate 14B."
+  },
+  "data": {
+    "note": "No dataset was opened. The paper describes the mixture and the observation fields. It does not give one episode count in the sections used here.",
+    "datasets": [
+      {
+        "name": "Mixed robot, human, and web context",
+        "role": "train",
+        "volume": "Demonstrations on static and mobile, single-arm and bimanual robots; autonomous rollouts including failures; human interventions; open-source robot data; egocentric human video; web localization, attributes, VQA, text, and video captioning. A single episode count was not extracted.",
+        "sampling": "The subgoal world model trains on a subset of segments with high-quality subtask labels. The image at the end of the segment is the target subgoal.",
+        "augmentation": "Not extracted.",
+        "tier": "paper",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section VI-A and the subgoal training paragraph",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ],
+        "fields": [
+          {
+            "name": "I_t",
+            "dtype": "camera images",
+            "shape": "n views",
+            "note": "History is compressed by the MEM encoder"
+          },
+          {
+            "name": "q_t",
+            "dtype": "joint configuration",
+            "shape": "robot-specific"
+          },
+          {
+            "name": "a_t",
+            "dtype": "joint or end-effector command",
+            "shape": "chunk H",
+            "note": "A shorter prefix of the chunk is executed"
+          },
+          {
+            "name": "C_t",
+            "dtype": "context",
+            "shape": "language, metadata, subgoal images",
+            "note": "Metadata includes quality, strategy, and control modality"
+          }
+        ],
+        "stream_kind": "mixed",
+        "feeds_gradient": true,
+        "mixture": "Recorded robot demonstrations, autonomous rollouts including failures, human interventions, egocentric human video, and web vision-language data.",
+        "golden": {
+          "kind": "action_chunk",
+          "description": "The policy target is the logged action chunk. The subgoal model uses the image at the end of a labeled segment.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "pdf",
+              "locator": "Section VI-A and the subgoal training paragraph",
+              "url": "https://arxiv.org/pdf/2604.15483"
+            }
+          ]
+        },
+        "example": {
+          "status": "missing",
+          "view": "none",
+          "fps": null,
+          "num_frames": null,
+          "video_path": null,
+          "sidecar_path": null,
+          "shows": [
+            "observation",
+            "trained_checkpoint_action",
+            "golden"
+          ],
+          "trained_checkpoint": {
+            "action_name": "a_t",
+            "dim": null,
+            "checkpoint_path": null,
+            "note": "No clip aligns an observation frame with a trained pi0.7 checkpoint's action and the logged action chunk."
+          },
+          "sources": []
+        }
+      }
+    ],
+    "training_provenance": {
+      "mode": "both",
+      "summary": "The paper trains on recorded demonstrations and on autonomous policy rollouts, plus human video and web context. This pass did not open a separate file for each source.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section VI-A and the subgoal training paragraph",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ]
+    }
+  },
+  "model": {
+    "overview": "Gemma3 4B VLM, including a 400M vision encoder, with a MEM-style video history encoder that emits a fixed token count for any history length. An 860M flow-matching action expert attends to the VLM. Knowledge insulation trains the VLM with FAST tokens and stops action-expert gradients from entering the VLM. The subgoal generator is a BAGEL 14B model, separate from the 5B policy.",
+    "total_params": {
+      "name": "Policy parameters",
+      "value": "About 5B: Gemma3 4B VLM (400M of that is the vision encoder) and an 860M action expert. The subgoal world model is a separate BAGEL 14B.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Figure 2 caption and Section IV",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ]
+    },
+    "modules": [
+      {
+        "name": "VLM backbone",
+        "params": "4B",
+        "detail": "Initialized from Gemma3, including the 400M vision encoder.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section IV",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      },
+      {
+        "name": "MEM history encoder",
+        "params": null,
+        "detail": "Temporal and spatial compression to a fixed token budget.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section IV",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      },
+      {
+        "name": "Action expert",
+        "params": "860M",
+        "detail": "Flow matching. Gradients do not enter the VLM.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section III and IV",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      },
+      {
+        "name": "Subgoal world model",
+        "params": "14B",
+        "detail": "Initialized from BAGEL. Generates multi-view near-future images from the subtask, observation, and metadata.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section V-B",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      }
+    ],
+    "runtime": "No pi0.7 code was cloned. openpi was left uncloned because its README does not list this model."
+  },
+  "compute": [
+    {
+      "name": "GPU, batch, steps, wall time",
+      "value": "Not extracted from the sections opened for this card.",
+      "status": "missing",
+      "sources": []
+    }
+  ],
+  "objectives": [
+    {
+      "id": "vla",
+      "name": "Steerable action likelihood",
+      "latex": "\\max_\\theta\\ \\mathbb{E}_{\\mathcal{D}}\\big[\\log\\pi_\\theta(a_{t:t+H}\\mid o_{t-T:t},\\mathcal{C}_t)\\big]",
+      "explanation": "The written objective is a chunk log-likelihood conditioned on recent observations and the full context. The paper says the flow-matching expert optimizes a lower bound of that likelihood rather than the closed form. Context is what makes a failed episode usable: the metadata tells the model how the episode was performed.",
+      "symbols": [
+        {
+          "sym": "\\mathcal{C}_t",
+          "meaning": "Language, episode metadata, control modality, and subgoal images."
+        },
+        {
+          "sym": "H",
+          "meaning": "Action-chunk horizon. A shorter prefix is executed."
+        }
+      ],
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Eq. 1",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ]
+    },
+    {
+      "id": "wm",
+      "name": "Subgoal flow matching",
+      "latex": "\\max_\\psi\\ \\mathbb{E}_{\\mathcal{D}_g}\\big[\\mathcal{L}_{\\mathrm{CFM}}(g^\\star_t,\\ g_\\psi(o_t,\\hat{\\ell}_t,m))\\big]",
+      "explanation": "The world model is trained with conditional flow matching to the image at the end of a labeled segment. At runtime it fills in the subgoal images the VLA was trained to consume.",
+      "symbols": [
+        {
+          "sym": "g^\\star_t",
+          "meaning": "Observed frame at the end of the segment."
+        },
+        {
+          "sym": "m",
+          "meaning": "Episode metadata."
+        }
+      ],
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section V-B",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ]
+    }
+  ],
+  "procedures": {
+    "train": [
+      {
+        "text": "Initialize the VLM and vision encoder from Gemma3 and the subgoal model from BAGEL.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section IV and V-B",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      },
+      {
+        "text": "Supervise the VLM with FAST tokens. Train the action expert with flow matching and stop its gradients at the VLM.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section III",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      },
+      {
+        "text": "Put language, metadata, control modality, and subgoal images in the prompt so mixed-quality episodes stay distinct modes.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section V",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      },
+      {
+        "text": "Train the subgoal model with conditional flow matching on high-quality labeled segments, using the segment's final frame as the target.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section V-B",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      }
+    ],
+    "infer": [
+      {
+        "text": "A high-level policy of the same architecture writes the subtask language.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Figure 2 caption",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      },
+      {
+        "text": "The BAGEL world model writes multi-view subgoal images from that subtask, the observation, and metadata.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section V-B",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      },
+      {
+        "text": "The 860M action expert flow-matches a chunk conditioned on history tokens and that context. Execute a prefix of the chunk.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section III",
+            "url": "https://arxiv.org/pdf/2604.15483"
+          }
+        ]
+      }
+    ]
+  },
+  "task": {
+    "embodiment": "Static and mobile, single-arm and bimanual robots. The joint layout is robot-specific.",
+    "action": "A joint or end-effector chunk. A shorter prefix of the chunk is executed.",
+    "horizon": "Image history has variable length and is compressed to a fixed token count. The numeric chunk length was not extracted.",
+    "contact": "Control modality is a label inside the context. A wrench input was not recorded.",
+    "latency": "GPU, batch, step count, and wall time were not extracted.",
+    "data": "Robot demonstrations, autonomous rollouts, human video, and web vision-language data. One episode count was not extracted.",
+    "status": "verified",
+    "sources": [
+      {
+        "kind": "pdf",
+        "locator": "Section VI-A and Section IV",
+        "url": "https://arxiv.org/pdf/2604.15483"
+      }
+    ]
+  },
+  "parts": [
+    {
+      "slot": "observation_encoder",
+      "choice": "Gemma3 vision encoder, 400M of the 4B VLM, plus a MEM history encoder.",
+      "inputs": "n camera views and a variable-length history.",
+      "outputs": "A fixed token budget for any history length.",
+      "frozen": "Knowledge insulation stops action-expert gradients from entering the VLM.",
+      "trained": "The VLM, with FAST-token targets.",
+      "breaks_if": "The new task has no camera history, or the VLM cannot be initialized from Gemma3.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section IV",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "language_or_goal",
+      "choice": "Detailed language, episode metadata, a control-modality label, and multi-view subgoal images from a separate model.",
+      "inputs": "Context C_t.",
+      "outputs": "Conditioning for the action chunk and the target of the subgoal model.",
+      "frozen": "The subgoal model is a separate 14B network, initialized from BAGEL.",
+      "trained": "The VLM consumes the context. The BAGEL model is trained on labeled segments.",
+      "breaks_if": "The new task has only a short task sentence and no metadata or subgoal image.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Eq. 1 and Section V-B",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ],
+      "evidence": {
+        "claim": "Eq. 1 conditions on this context. A numeric ablation of the context bundle was not extracted.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "memory",
+      "choice": "MEM temporal and spatial compression to a fixed token count.",
+      "inputs": "A variable-length image history.",
+      "outputs": "A fixed token sequence.",
+      "frozen": "The compressor is part of the VLM training story. A freeze flag was not extracted.",
+      "trained": "The history encoder.",
+      "breaks_if": "The task is a single frame with no history worth compressing.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section IV",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "action_representation",
+      "choice": "An 860M flow-matching action expert.",
+      "inputs": "VLM tokens and the noisy action chunk.",
+      "outputs": "A chunk whose log-likelihood is the written objective.",
+      "frozen": "Action-expert gradients do not enter the VLM.",
+      "trained": "The 860M expert.",
+      "breaks_if": "The action is not a chunk, or the host backbone is not a VLM the expert can attend to.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section III and IV",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "controller",
+      "choice": "Execute a shorter prefix of the predicted chunk. The control modality is context, not a learned impedance law.",
+      "inputs": "The action chunk.",
+      "outputs": "The executed prefix.",
+      "frozen": "The policy is held fixed at deployment. Online fast weights were not described.",
+      "trained": "No separate controller was described.",
+      "breaks_if": "The robot needs a compliant wrench rather than a position or joint chunk.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section III, chunk execution",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "objective",
+      "choice": "A flow-matching lower bound on the steerable chunk likelihood, plus conditional flow matching for the subgoal image.",
+      "inputs": "Observations, context, the action chunk, and labeled subgoal frames.",
+      "outputs": "An action loss and a subgoal-image loss on a separate model.",
+      "frozen": "The subgoal model does not share weights with the 5B policy.",
+      "trained": "The 5B policy and, separately, the 14B subgoal model.",
+      "breaks_if": "Subgoal images and metadata cannot be produced for the new task.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Eq. 1 and the subgoal flow-matching objective",
+          "url": "https://arxiv.org/pdf/2604.15483"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    }
+  ],
+  "gaps": [
+    "No public pi0.7 code. openpi is an earlier repository and was not used as an implementation.",
+    "Training GPU, batch size, step count, and wall time were not extracted.",
+    "The author list is the organization byline. The PDF names a long team that was not copied name by name.",
+    "No sample was loaded, and the paper section used here does not give a single episode count.",
+    "No example clip aligns an observation frame with a trained pi0.7 checkpoint's action and the logged action chunk."
+  ]
+}

@@ -1,0 +1,727 @@
+{
+  "id": "dreamzero",
+  "identity": {
+    "title": "World Action Models are Zero-shot Policies",
+    "authors": [
+      "Seonghyeon Ye et al. (NVIDIA)"
+    ],
+    "venue": "arXiv 2602.15922",
+    "year": 2026,
+    "arxiv": "2602.15922",
+    "pdf_url": "https://arxiv.org/pdf/2602.15922",
+    "pdf_path": "paper.pdf",
+    "project_url": "https://dreamzero0.github.io/",
+    "repo_url": "https://github.com/dreamzero0/dreamzero",
+    "repo_commit": "ab790c198fbce33503358efbbd4187ce9a89adf3",
+    "repo_role": "official",
+    "repo_note": "Official inference and training code, shallow-cloned at this commit. Checkpoints were not downloaded."
+  },
+  "summary": "DreamZero fine-tunes a pretrained video diffusion backbone to denoise future video latents and robot actions together. The released training path is a causal Wan model: one DiT sees video tokens and action registers, and the loss is a weighted MSE on both velocity targets. The paper's main model is Wan2.1-I2V-14B. The class defaults opened in CausalWanModel are a smaller shape, so those defaults are not the 14B width. Closed-loop inference replaces predicted frames with the real observation in the KV cache after each chunk.",
+  "landscape": {
+    "paradigm": "Joint video-action diffusion, a 14B world-action model",
+    "bottleneck": "Physical-motion generalization of VLAs that only imitate actions",
+    "hardware_fit": "Local note: not recommended, about 40\u201380+ GB. The paper's speed table uses H100 and GB200."
+  },
+  "data": {
+    "note": "DROID and AgiBot episodes were not downloaded. The sample fields are the tensors WANPolicyHead.forward reads. Volumes are from the paper.",
+    "datasets": [
+      {
+        "name": "AgiBot G1 teleop",
+        "role": "train",
+        "volume": "About 500 hours, 7.2k episodes, 22 environments. Episodes average about 4.4 minutes and about 42 subtasks. Video is sampled at 5 fps and actions at 30 Hz, horizon 48, which is 1.6 seconds per chunk.",
+        "sampling": "Idle actions are filtered. Relative joint positions are the default action. Training samples a trajectory and splits it into M=4 chunks of K=2 latent frames.",
+        "augmentation": "The data transform package includes crop, color jitter, and related video transforms. Which of those the 14B run enabled was not confirmed in the training config.",
+        "tier": "paper",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section 4 and Appendix C",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          }
+        ],
+        "fields": [
+          {
+            "name": "images",
+            "dtype": "uint8 then normalized to [-1, 1]",
+            "shape": "(B, T, H, W, C)",
+            "note": "Rearranged to (B, C, T, H, W) before the VAE"
+          },
+          {
+            "name": "text",
+            "dtype": "tokens",
+            "shape": "(B, length)",
+            "note": "Frozen text encoder"
+          },
+          {
+            "name": "state",
+            "dtype": "proprioception",
+            "shape": "(B, time, state_dim)"
+          },
+          {
+            "name": "action",
+            "dtype": "normalized",
+            "shape": "(B, time, action_dim)",
+            "note": "Asserted in [-1, 1]"
+          }
+        ],
+        "stream_kind": "recorded",
+        "feeds_gradient": true,
+        "recorded": {
+          "origin": "real_robot",
+          "dataset_name": "AgiBot G1 teleop",
+          "success_filter": "Teleoperated episodes. Idle actions are filtered.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "pdf",
+              "locator": "Section 4 and Appendix C",
+              "url": "https://arxiv.org/pdf/2602.15922"
+            }
+          ]
+        },
+        "golden": {
+          "kind": "action_chunk",
+          "description": "The logged relative joint-position chunk is the action target, trained jointly with the video velocity.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "pdf",
+              "locator": "Section 4 and Appendix C",
+              "url": "https://arxiv.org/pdf/2602.15922"
+            }
+          ]
+        },
+        "example": {
+          "status": "missing",
+          "view": "none",
+          "fps": null,
+          "num_frames": null,
+          "video_path": null,
+          "sidecar_path": null,
+          "shows": [
+            "observation",
+            "trained_checkpoint_action",
+            "golden"
+          ],
+          "trained_checkpoint": {
+            "action_name": "action",
+            "dim": null,
+            "checkpoint_path": null,
+            "note": "No clip aligns a AgiBot frame with a trained DreamZero checkpoint's action and the logged action chunk."
+          },
+          "sources": []
+        }
+      },
+      {
+        "name": "DROID",
+        "role": "the released Franka training set",
+        "volume": "Trained 100k steps at global batch 128, separate from the AgiBot run. Video 5 fps, actions 15 Hz, horizon 24, again 1.6 seconds. Eval is 20 seen and 20 unseen tasks, 2 rollouts each.",
+        "sampling": "Same chunking. The README points at a DROID checkpoint and a conversion script.",
+        "augmentation": "Not confirmed for the released run.",
+        "tier": "paper",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Training paragraph and Appendix C",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          },
+          {
+            "kind": "readme",
+            "locator": "README checkpoint section",
+            "url": "https://github.com/dreamzero0/dreamzero"
+          }
+        ],
+        "code": [
+          {
+            "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+            "start": 603,
+            "end": 810,
+            "symbol": "WANPolicyHead.forward",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810"
+          }
+        ],
+        "fields": [
+          {
+            "name": "images",
+            "dtype": "uint8",
+            "shape": "(B, T, H, W, C)",
+            "note": "Same head as AgiBot"
+          },
+          {
+            "name": "action",
+            "dtype": "float in [-1, 1]",
+            "shape": "(B, horizon, action_dim)",
+            "note": "Relative joint positions in the paper's default"
+          }
+        ],
+        "stream_kind": "recorded",
+        "feeds_gradient": true,
+        "recorded": {
+          "origin": "real_robot",
+          "dataset_name": "DROID",
+          "success_filter": "The released Franka teleoperation set used for the separate 100k-step run.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "pdf",
+              "locator": "Training paragraph and Appendix C",
+              "url": "https://arxiv.org/pdf/2602.15922"
+            },
+            {
+              "kind": "readme",
+              "locator": "README checkpoint section",
+              "url": "https://github.com/dreamzero0/dreamzero"
+            }
+          ]
+        },
+        "golden": {
+          "kind": "action_chunk",
+          "description": "The logged relative joint-position chunk is the action target, trained jointly with the video velocity.",
+          "status": "verified",
+          "sources": [
+            {
+              "kind": "pdf",
+              "locator": "Training paragraph and Appendix C",
+              "url": "https://arxiv.org/pdf/2602.15922"
+            },
+            {
+              "kind": "readme",
+              "locator": "README checkpoint section",
+              "url": "https://github.com/dreamzero0/dreamzero"
+            }
+          ]
+        },
+        "example": {
+          "status": "missing",
+          "view": "none",
+          "fps": null,
+          "num_frames": null,
+          "video_path": null,
+          "sidecar_path": null,
+          "shows": [
+            "observation",
+            "trained_checkpoint_action",
+            "golden"
+          ],
+          "trained_checkpoint": {
+            "action_name": "action",
+            "dim": null,
+            "checkpoint_path": null,
+            "note": "No clip aligns a DROID frame with a trained DreamZero checkpoint's action and the logged action chunk."
+          },
+          "sources": []
+        }
+      }
+    ],
+    "training_provenance": {
+      "mode": "recorded_success",
+      "summary": "AgiBot and DROID training use recorded teleoperated episodes. The model is trained to match the logged action chunk and the video.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 4 and Appendix C",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ]
+    }
+  },
+  "model": {
+    "overview": "A Wan video DiT with action and state registers. The VAE, image encoder, and text encoder stay frozen. The DiT, state encoder, action encoder, and action decoder train. CausalWanModel is the backbone class. Its __init__ defaults (dim 2048, 32 layers, 16 heads, ffn 8192) are not the Wan2.1-I2V-14B shape; the 14B width is selected by the checkpoint config.",
+    "total_params": {
+      "name": "Backbone",
+      "value": "14B for the Wan2.1-I2V-14B runs. A 5B Wan ablation is also reported. Added parameters are the state and action encoder/decoder.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 4, Training",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ]
+    },
+    "modules": [
+      {
+        "name": "CausalWanModel",
+        "params": "14B when loaded from Wan2.1-I2V-14B",
+        "detail": "Autoregressive DiT. Class defaults are a smaller config and must not be read as the 14B width.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section 3.1 and Section 4",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          }
+        ],
+        "code": [
+          {
+            "path": "groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py",
+            "start": 1254,
+            "end": 1289,
+            "symbol": "CausalWanModel",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py#L1254-L1289"
+          }
+        ]
+      },
+      {
+        "name": "WANPolicyHead",
+        "params": null,
+        "detail": "Encodes video, prompt, and image, noises both modalities, and returns the sum of weighted MSEs.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "code",
+            "locator": "WANPolicyHead.forward",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py"
+          }
+        ],
+        "code": [
+          {
+            "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+            "start": 603,
+            "end": 810,
+            "symbol": "WANPolicyHead.forward",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810"
+          }
+        ]
+      },
+      {
+        "name": "Frozen encoders",
+        "params": null,
+        "detail": "Text encoder, image encoder, and VAE are frozen.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section 4, Training",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          }
+        ]
+      }
+    ],
+    "runtime": "AST outline is in extracts/model_outline.txt (75 Module-like classes). The 14B checkpoint was not downloaded and the model was not constructed."
+  },
+  "compute": [
+    {
+      "name": "Main training",
+      "value": "100k steps, global batch 128, separately for AgiBot and for DROID. The GPU count of that run was not extracted. Ablations use 50k steps and batch 32.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 4 and Section 5.2",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ]
+    },
+    {
+      "name": "Inference speed",
+      "value": "The paper's table: system optimizations about 9x on H100 and about 16x on GB200; DreamZero-Flash reaches 38x on GB200, 5.7 s down to 150 ms, about 7 Hz. The README also quotes about 0.6 s on GB200 and about 3 s on H100 with DiT caching.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 3.2",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        },
+        {
+          "kind": "readme",
+          "locator": "README features",
+          "url": "https://github.com/dreamzero0/dreamzero"
+        }
+      ]
+    }
+  ],
+  "objectives": [
+    {
+      "id": "interp",
+      "name": "Shared interpolation",
+      "latex": "z_{t_k}^{k}=t_k z_1^{k}+(1-t_k)z_0^{k},\\quad a_{t_k}^{k}=t_k a_1^{k}+(1-t_k)a_0^{k}",
+      "explanation": "Clean latent and clean action sit at t=1. Noise sits at t=0. In the default objective a chunk shares one timestep across video and action. DreamZero-Flash draws them separately: video time from Beta(7, 1), action time uniform.",
+      "symbols": [
+        {
+          "sym": "z_1",
+          "meaning": "Clean VAE latent of the video chunk."
+        },
+        {
+          "sym": "a_1",
+          "meaning": "Normalized action chunk."
+        }
+      ],
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Eq. 2 and Algorithm 1",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ],
+      "code": [
+        {
+          "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+          "start": 603,
+          "end": 810,
+          "symbol": "WANPolicyHead.forward",
+          "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810"
+        }
+      ]
+    },
+    {
+      "id": "loss",
+      "name": "Joint velocity loss",
+      "latex": "\\mathcal{L}(\\theta)=\\mathbb{E}\\frac{1}{K}\\sum_k w(t_k)\\big\\lVert u_\\theta([z_{t_k}^{k},a_{t_k}^{k}];\\mathcal{C}_k,c,q_k,t_k)-v^{k}\\big\\rVert^2",
+      "explanation": "The target velocity is the clean pair minus the noise pair. Context C_k is the clean previous chunks (teacher forcing). The opened implementation splits this into a weighted video MSE plus a weighted action MSE, and gates the action term with the action mask and has_real_action.",
+      "symbols": [
+        {
+          "sym": "v^{k}",
+          "meaning": "[z_1, a_1] - [z_0, a_0]."
+        },
+        {
+          "sym": "w(t)",
+          "meaning": "Scheduler training weight."
+        },
+        {
+          "sym": "\\mathcal{C}_k",
+          "meaning": "Clean latents and actions of earlier chunks."
+        }
+      ],
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Eq. 3",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ],
+      "code": [
+        {
+          "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+          "start": 760,
+          "end": 810,
+          "symbol": "WANPolicyHead.forward loss",
+          "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L760-L810"
+        }
+      ]
+    }
+  ],
+  "procedures": {
+    "train": [
+      {
+        "text": "Encode the clip with the frozen VAE and the prompt with the frozen text encoder. Normalize uint8 video into [-1, 1].",
+        "status": "verified",
+        "code": [
+          {
+            "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+            "start": 603,
+            "end": 810,
+            "symbol": "WANPolicyHead.forward",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810"
+          }
+        ]
+      },
+      {
+        "text": "Split the trajectory into chunks. Sample a timestep. Unless Flash decoupling is on, video and action share it.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+            "start": 603,
+            "end": 810,
+            "symbol": "WANPolicyHead.forward",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810"
+          }
+        ],
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Algorithm 1",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          }
+        ]
+      },
+      {
+        "text": "Interpolate toward noise, run the causal DiT on the noisy latent and the noisy action, and add the weighted video MSE to the weighted action MSE.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+            "start": 760,
+            "end": 810,
+            "symbol": "WANPolicyHead.forward loss",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L760-L810"
+          }
+        ]
+      },
+      {
+        "text": "Teacher-force the previous chunks as clean context. Update the DiT and the action/state heads. Leave the text encoder, image encoder, and VAE frozen.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+            "start": 603,
+            "end": 810,
+            "symbol": "WANPolicyHead.forward",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810"
+          }
+        ],
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section 3.1 and Section 4",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          }
+        ]
+      }
+    ],
+    "infer": [
+      {
+        "text": "The server converts the observation and calls the causal joint video-action sampler.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "eval_utils/serve_dreamzero_wan22.py",
+            "start": 255,
+            "end": 273,
+            "symbol": "DreamZeroWan225BPolicy.infer",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/eval_utils/serve_dreamzero_wan22.py#L255-L273"
+          },
+          {
+            "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+            "start": 973,
+            "end": 1007,
+            "symbol": "WANPolicyHead.lazy_joint_video_action",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L973-L1007"
+          }
+        ]
+      },
+      {
+        "text": "Denoise the next video chunk and action chunk. Execute the action chunk.",
+        "status": "verified",
+        "code": [
+          {
+            "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+            "start": 973,
+            "end": 1007,
+            "symbol": "WANPolicyHead.lazy_joint_video_action",
+            "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L973-L1007"
+          }
+        ],
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section 3.1, Model Inference",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          }
+        ]
+      },
+      {
+        "text": "After execution, write the real observation back into the KV cache in place of the predicted frames.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section 3.1, Model Inference",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          }
+        ]
+      }
+    ]
+  },
+  "task": {
+    "embodiment": "AgiBot G1 teleop and a Franka robot on DROID.",
+    "action": "Relative joint positions normalized to [-1, 1]. AgiBot uses 48 action steps at 30 Hz. DROID uses 24 action steps at 15 Hz.",
+    "horizon": "Both settings cover 1.6 seconds. Training packs M=4 chunks of K=2 latent frames. Closed-loop inference writes the real frame back into the KV cache.",
+    "contact": "Video, text, proprioception, and action. A wrench input was not recorded.",
+    "latency": "DreamZero-Flash is reported at about 7 Hz on GB200, 5.7 s down to 150 ms. The README also quotes about 0.6 s on GB200 and about 3 s on H100 with DiT caching.",
+    "data": "AgiBot is about 500 hours and 7.2k episodes. DROID is a separate 100k-step run. Video is sampled at 5 fps.",
+    "status": "verified",
+    "sources": [
+      {
+        "kind": "pdf",
+        "locator": "Section 4 and Appendix C",
+        "url": "https://arxiv.org/pdf/2602.15922"
+      },
+      {
+        "kind": "readme",
+        "locator": "README features",
+        "url": "https://github.com/dreamzero0/dreamzero"
+      }
+    ]
+  },
+  "parts": [
+    {
+      "slot": "observation_encoder",
+      "choice": "Frozen VAE, image encoder, and text encoder in front of a Wan video DiT. The paper's main run is Wan2.1-I2V-14B.",
+      "inputs": "Video frames in [-1, 1], text tokens, and proprioception.",
+      "outputs": "Video tokens and a text embedding for the DiT.",
+      "frozen": "VAE, image encoder, and text encoder.",
+      "trained": "The DiT and the state encoder.",
+      "breaks_if": "The new task has no video sequence, or it cannot host a 14B video backbone.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 3.1 and Section 4",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ],
+      "evidence": {
+        "claim": "Section 4 reports a 5B Wan ablation beside the 14B runs. The numeric result of that ablation was not copied onto this card.",
+        "status": "verified",
+        "sources": [
+          {
+            "kind": "pdf",
+            "locator": "Section 4, Training",
+            "url": "https://arxiv.org/pdf/2602.15922"
+          }
+        ]
+      },
+      "code": [
+        {
+          "path": "groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py",
+          "start": 1254,
+          "end": 1289,
+          "symbol": "CausalWanModel",
+          "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/modules/wan_video_dit_action_casual_chunk.py#L1254-L1289"
+        }
+      ]
+    },
+    {
+      "slot": "language_or_goal",
+      "choice": "A frozen text encoder over the task prompt.",
+      "inputs": "Token ids, shape (B, length).",
+      "outputs": "Text embeddings consumed by the video DiT.",
+      "frozen": "The text encoder.",
+      "trained": "No text-encoder weights train.",
+      "breaks_if": "The task has no language prompt the frozen encoder can embed.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 3.1",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "memory",
+      "choice": "A causal KV cache. After each chunk the predicted frame is replaced by the real observation.",
+      "inputs": "Past video and action tokens.",
+      "outputs": "The cache for the next chunk.",
+      "frozen": "The cache is inference state.",
+      "trained": "No separate memory network was described.",
+      "breaks_if": "The rollout is open-loop and cannot replace a predicted frame with a real one.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 3, closed-loop inference",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "action_representation",
+      "choice": "Action registers inside the same DiT that denoises video latents.",
+      "inputs": "Noisy video latents, noisy actions, state, and flow time.",
+      "outputs": "An action velocity and a video velocity.",
+      "frozen": "The VAE stays frozen, so the action head never trains the decoder of pixels.",
+      "trained": "Action encoder, action decoder, and the DiT.",
+      "breaks_if": "The action is a torque or a compliance command rather than a normalized joint-position chunk.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "code",
+          "locator": "WANPolicyHead.forward",
+          "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      },
+      "code": [
+        {
+          "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+          "start": 603,
+          "end": 810,
+          "symbol": "WANPolicyHead.forward",
+          "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L603-L810"
+        }
+      ]
+    },
+    {
+      "slot": "controller",
+      "choice": "Execute the decoded relative joint chunk. The paper's optimized inference is about 7 Hz.",
+      "inputs": "The denoised action.",
+      "outputs": "Joint-position commands in the dataset's normalization.",
+      "frozen": "Deployed weights.",
+      "trained": "No impedance controller was described.",
+      "breaks_if": "The robot cannot track a joint-position chunk at the chunk's rate.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 3.2, inference speed",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      }
+    },
+    {
+      "slot": "objective",
+      "choice": "One weighted MSE on the video velocity and the action velocity.",
+      "inputs": "Paired video and action trajectories, split into chunks.",
+      "outputs": "A joint flow-matching loss.",
+      "frozen": "VAE, image encoder, and text encoder.",
+      "trained": "DiT, state encoder, action encoder, and action decoder. 100k steps, global batch 128.",
+      "breaks_if": "The batch has actions and no aligned video, or video and no actions.",
+      "status": "verified",
+      "sources": [
+        {
+          "kind": "pdf",
+          "locator": "Section 4",
+          "url": "https://arxiv.org/pdf/2602.15922"
+        }
+      ],
+      "evidence": {
+        "claim": "The published result is for the whole system. This slot was not isolated.",
+        "status": "missing",
+        "sources": []
+      },
+      "code": [
+        {
+          "path": "groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py",
+          "start": 760,
+          "end": 810,
+          "symbol": "WANPolicyHead loss",
+          "url": "https://github.com/dreamzero0/dreamzero/blob/ab790c198fbce33503358efbbd4187ce9a89adf3/groot/vla/model/dreamzero/action_head/wan_flow_matching_action_tf.py#L760-L810"
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "The 14B checkpoint was not downloaded, and CausalWanModel was not constructed, so the printed module is the AST outline. Class defaults are not the 14B shape.",
+    "The GPU count for the 100k-step batch-128 run was not extracted.",
+    "Which video augmentations were enabled for the released 14B run was not confirmed.",
+    "No episode file was opened, so the field table is the tensor contract, not a measured sample.",
+    "No example clip aligns a teleop frame with a trained DreamZero checkpoint's action and the logged action chunk."
+  ]
+}
