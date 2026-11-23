@@ -107,7 +107,7 @@
             "action_name": "A_t",
             "dim": null,
             "checkpoint_path": null,
-            "note": "No clip aligns a pretraining frame with a trained RoboTTT checkpoint's action chunk and the logged action."
+            "note": "No frame-aligned clip. The unofficial library did not import (missing einx), and it ships neither the paper's episodes nor a trained robot checkpoint."
           },
           "sources": []
         }
@@ -178,7 +178,7 @@
             "action_name": "A_t",
             "dim": null,
             "checkpoint_path": null,
-            "note": "No clip aligns a YAM assembly frame with a trained RoboTTT checkpoint's action chunk and the logged action."
+            "note": "No frame-aligned clip. The unofficial library did not import (missing einx), and it ships neither the paper's episodes nor a trained robot checkpoint."
           },
           "sources": []
         }
@@ -299,7 +299,7 @@
         ]
       }
     ],
-    "runtime": "The library was indexed with the AST, not imported. No parameter total was counted from the unofficial modules, because their widths are caller-chosen."
+    "runtime": "The library was indexed with the AST. This walk tried `from robo_ttt import MemoryKeyValueBind, TTTWrapper` with the SuperMimic environment's torch and failed: ModuleNotFoundError: No module named 'einx'. The README example is a random tensor, not a robot episode, and the clone ships no YAM data and no paper checkpoint. See extracts/run_infer.txt."
   },
   "compute": [
     {
@@ -767,6 +767,7 @@
     "NVIDIA has not published the GR00T N1.7 + TTT training code in the sources found here. Links are to the unofficial library, and the match is the mechanism, not a line-by-line port of the paper's trainer.",
     "Eagle VLM parameter count, image resolution during pretraining, and the exact segment length used for TBPTT were not extracted.",
     "The library was not imported, so there is no live parameter print.",
-    "No example clip aligns a training frame with a trained RoboTTT checkpoint's action and the logged action chunk."
+    "No example clip aligns a training frame with a trained RoboTTT checkpoint's action and the logged action chunk.",
+    "The unofficial RoboTTT import failed before a forward, and the clone has no robot episode to attach a checkpoint action to."
   ]
 }

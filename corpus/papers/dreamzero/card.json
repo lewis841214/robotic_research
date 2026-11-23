@@ -108,7 +108,7 @@
             "action_name": "action",
             "dim": null,
             "checkpoint_path": null,
-            "note": "No clip aligns a AgiBot frame with a trained DreamZero checkpoint's action and the logged action chunk."
+            "note": "No frame-aligned clip. The named DreamZero checkpoint does not fit the 16 GB GPU, so it was not loaded and no action was sampled."
           },
           "sources": []
         }
@@ -209,7 +209,7 @@
             "action_name": "action",
             "dim": null,
             "checkpoint_path": null,
-            "note": "No clip aligns a DROID frame with a trained DreamZero checkpoint's action and the logged action chunk."
+            "note": "No frame-aligned clip. The named DreamZero checkpoint does not fit the 16 GB GPU, so it was not loaded and no action was sampled."
           },
           "sources": []
         }
@@ -301,7 +301,7 @@
         ]
       }
     ],
-    "runtime": "AST outline is in extracts/model_outline.txt (75 Module-like classes). The 14B checkpoint was not downloaded and the model was not constructed."
+    "runtime": "AST outline is in extracts/model_outline.txt (75 Module-like classes). This walk did not download GEAR-Dreams/DreamZero-DROID or DreamZero-AgiBot. README inference asks for two GPUs and the 14B checkpoint. The local GPU is one RTX 5070 Ti with 16303 MiB, so the checkpoint does not fit. Training was not started. See extracts/run_infer.txt and extracts/run_train.txt."
   },
   "compute": [
     {
@@ -722,6 +722,7 @@
     "The GPU count for the 100k-step batch-128 run was not extracted.",
     "Which video augmentations were enabled for the released 14B run was not confirmed.",
     "No episode file was opened, so the field table is the tensor contract, not a measured sample.",
-    "No example clip aligns a teleop frame with a trained DreamZero checkpoint's action and the logged action chunk."
+    "No example clip aligns a teleop frame with a trained DreamZero checkpoint's action and the logged action chunk.",
+    "The named DreamZero checkpoint does not fit this 16 GB GPU, so no frame-aligned action was sampled."
   ]
 }

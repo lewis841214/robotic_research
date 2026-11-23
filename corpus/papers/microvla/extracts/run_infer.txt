@@ -1,0 +1,4 @@
+command: not run
+device: cuda:0 NVIDIA GeForce RTX 5070 Ti, 16303 MiB
+note: README inference is `uv run python infer.py --config nf4+trim`, which loads lerobot/pi05_libero_finetuned_v044. That is a pretrained pi0.5 checkpoint, not the MicroVLA class in train.py, so it was not used as this paper's inference entry. The paper model's sample() was run from the two-step checkpoint. See extracts/run_example.txt.
+exit_code: not run

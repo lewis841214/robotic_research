@@ -1,0 +1,72 @@
+{
+  "vision": {
+    "type": "theia",
+    "model_id": "theaiinstitute/theia-tiny-patch16-224-cdiv",
+    "freeze": false,
+    "lora_rank": 0,
+    "lora_alpha": 16.0,
+    "params": {}
+  },
+  "language": {
+    "type": "potion",
+    "model_id": "minishlab/potion-base-2M",
+    "params": {
+      "sequence": true
+    }
+  },
+  "text_adapter": {
+    "type": "gru",
+    "params": {}
+  },
+  "fusion": {
+    "type": "film_pool",
+    "num_queries": 16,
+    "depth": 3,
+    "use_q_norm": true,
+    "params": {}
+  },
+  "head": {
+    "type": "mlp",
+    "hidden": 512,
+    "blocks": 5,
+    "params": {}
+  },
+  "proprio": {
+    "enabled": true,
+    "dim": 8,
+    "emb_dim": 64,
+    "history": 1
+  },
+  "aux": [
+    {
+      "type": "infonce",
+      "weight": 1.0,
+      "params": {
+        "cov_weight": 0.1,
+        "proj_dim": 256,
+        "proj_hidden": 512,
+        "temperature": 0.1,
+        "var_target": 1.0,
+        "var_weight": 0.5
+      }
+    }
+  ],
+  "augment": {
+    "enabled": true,
+    "strength": 1.0,
+    "anneal_steps": 0,
+    "start_strength": 2.0,
+    "end_strength": 0.0,
+    "schedule": "cosine",
+    "kinds": [
+      "crop",
+      "jitter",
+      "warp",
+      "noise"
+    ]
+  },
+  "chunk_size": 16,
+  "action_dim": 7,
+  "use_wrist": true,
+  "action_target": "delta"
+}

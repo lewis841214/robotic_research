@@ -1,0 +1,3 @@
+command: not run
+note: The unofficial repository has no training entry for the paper's robot trajectories. Its README shows a library call on torch.randn. That call was not reached because `einx` is not installed in the environment used for the import. No YAM episodes were present to attach a checkpoint action to a frame.
+exit_code: not run

@@ -1,0 +1,3 @@
+command: not run
+note: repo_role is none. There is no public training entry and no public checkpoint to align with a frame.
+exit_code: not run

@@ -1,0 +1,3 @@
+command: not run
+note: repo_role is none. Physical-Intelligence/openpi documents models through pi0.5 and was not used as this paper's code. No pi0.7 checkpoint is public, so inference was skipped.
+exit_code: not run

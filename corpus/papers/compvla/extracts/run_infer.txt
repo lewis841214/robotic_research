@@ -1,0 +1,3 @@
+command: not run
+note: repo_role is none. The project page and the paper do not name a public training or inference repository. Inference was skipped.
+exit_code: not run

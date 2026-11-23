@@ -1,0 +1,14 @@
+command: WANDB_MODE=offline PYTHONUNBUFFERED=1 uv run python train.py --preprocess --stream --image-size 96 --cache runs/libero_cache_96
+device: not a GPU step; Hugging Face range reads of HuggingFaceVLA/libero@86958911c0f959db2bbbdb107eb3e17c5f9c798e
+cwd: corpus/papers/microvla/repo
+exit_code: 0
+note: The session printed PREPROCESS_EXIT:0. A second start of the same command truncated this file after the run had finished, and that second process was stopped while the cache was already complete. Progress JSON from stdout was not kept. The numbers below were read from runs/libero_cache_96/manifest.json after that exit.
+manifest.complete: true
+manifest.frames: 52970
+manifest.image_size: 96
+manifest.cache_bytes: 2933478600
+manifest.completed_files: 69
+manifest.identity.tasks: 10
+manifest.identity.episodes: 432
+manifest.val_episodes: 20
+manifest.norm: action, state

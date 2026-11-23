@@ -1,0 +1,105 @@
+[
+  {
+    "name": "MemoryKeyValueBind",
+    "path": "robo_ttt/robo_ttt.py",
+    "line": 142,
+    "bases": [
+      "Module"
+    ],
+    "assigns": [
+      "    self.select_tokens_slice = select_tokens_slice",
+      "    self.to_qkv = nn.Sequential(nn.RMSNorm(dim), nn.Linear(dim, dim * 3))",
+      "    self.split_qkv = Rearrange('b ... (qkv d) -> qkv b ... d', qkv=3)",
+      "    self.rotary_embed_qk = rotary_embed_qk",
+      "    self.memory = memory_net",
+      "    self.base_memory_params = dict(memory_net.named_parameters())",
+      "    self.retrieve = vmap(_retrieve, in_dims=(0, 0))",
+      "    self.store = vmap(grad(_store, argnums=0), in_dims=(0, 0))",
+      "    self.learnable_lr = Parameter(tensor(0.01))",
+      "    self.muon_update = muon_update",
+      "    self.muon_param_names = set()",
+      "    self.learned_forget = learned_forget"
+    ]
+  },
+  {
+    "name": "fwPKMWrapper",
+    "path": "robo_ttt/robo_ttt.py",
+    "line": 315,
+    "bases": [
+      "Module"
+    ],
+    "assigns": [
+      "    self.fw_pkm = fw_pkm",
+      "    self.dim = getattr(fw_pkm, 'dim', None)",
+      "    self.use_delta_fast_weights = use_delta_fast_weights"
+    ]
+  },
+  {
+    "name": "fWAWrapper",
+    "path": "robo_ttt/robo_ttt.py",
+    "line": 359,
+    "bases": [
+      "Module"
+    ],
+    "assigns": [
+      "    self.fwa = fwa",
+      "    self.dim = getattr(fwa, 'dim', None)",
+      "    self.use_delta_fast_weights = use_delta_fast_weights"
+    ]
+  },
+  {
+    "name": "TTTWrapper",
+    "path": "robo_ttt/robo_ttt.py",
+    "line": 409,
+    "bases": [
+      "Module"
+    ],
+    "assigns": [
+      "    self.dim = dim",
+      "    self.memory = memory",
+      "    self.select_tokens_slice = select_tokens_slice",
+      "    self.tbptt_step_size = tbptt_step_size",
+      "    self.memory_out_layerscale = nn.Parameter(torch.randn(dim) * 0.0001)",
+      "    self.use_delta_fast_weights = default(use_delta_fast_weights, getattr(self.memory, 'use_delta_fast_weights', True))"
+    ]
+  },
+  {
+    "name": "NextLatentPredictor",
+    "path": "robo_ttt/robo_ttt.py",
+    "line": 514,
+    "bases": [
+      "Module"
+    ],
+    "assigns": [
+      "    self.action_tokens_slice = action_tokens_slice",
+      "    self.state_tokens_slice = state_tokens_slice",
+      "    self.loss_ratio = loss_ratio",
+      "    self.action_loss_weight = action_loss_weight",
+      "    self.min_loss_ratio = min_loss_ratio",
+      "    self.max_loss_ratio = max_loss_ratio",
+      "    self.eps = eps"
+    ]
+  },
+  {
+    "name": "RoboTTT",
+    "path": "robo_ttt/robo_ttt.py",
+    "line": 601,
+    "bases": [
+      "Module"
+    ],
+    "assigns": [
+      "    self.model = model",
+      "    self.ttt_wrapper = ttt_wrapper",
+      "    self.batch_time_arg = batch_time_arg",
+      "    self.expand_time_args = set(expand_time_args)",
+      "    self.omit_time_args = set(omit_time_args)",
+      "    self.non_temporal_keys = self.expand_time_args | self.omit_time_args",
+      "    self.times_arg = times_arg",
+      "    self.unreduced_loss_arg = unreduced_loss_arg",
+      "    self.loss_arg = loss_arg",
+      "    self.sample_action_times_fn = sample_action_times_fn",
+      "    self.ttt_wrappers = ModuleList(resolved_wrappers)",
+      "    self.ttt_module_paths = tuple(resolved_paths)"
+    ]
+  }
+]

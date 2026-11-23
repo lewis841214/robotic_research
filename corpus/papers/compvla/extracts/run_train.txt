@@ -1,0 +1,3 @@
+command: not run
+note: repo_role is none. No public training entry exists to take an optimizer step, and no released checkpoint was found to replay against a teleop frame.
+exit_code: not run

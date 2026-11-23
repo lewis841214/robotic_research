@@ -1,0 +1,28 @@
+command: WANDB_MODE=offline PYTHONUNBUFFERED=1 uv run python corpus/papers/microvla/extracts/capture_example.py
+device: cuda NVIDIA GeForce RTX 5070 Ti
+cwd: corpus/papers/microvla/repo
+checkpoint: repo/runs/paper-card/latest.pt
+note: Loads the two-step checkpoint and runs MicroVLA.sample for 16 consecutive frames of the first train episode. Actions are unnormalized 16 by 7 chunks, flattened to 112. Golden values are the logged future actions from the cache.
+exit_code: 0
+
+device cuda
+gpu NVIDIA GeForce RTX 5070 Ti
+/mnt/d/robotic_research/corpus/papers/microvla/extracts/capture_example.py:66: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:208.)
+  images_t = torch.from_numpy(np.ascontiguousarray(data.arrays["images"][index][None])).to(device)
+frame 0 pred 112 golden 112
+frame 1 pred 112 golden 112
+frame 2 pred 112 golden 112
+frame 3 pred 112 golden 112
+frame 4 pred 112 golden 112
+frame 5 pred 112 golden 112
+frame 6 pred 112 golden 112
+frame 7 pred 112 golden 112
+frame 8 pred 112 golden 112
+frame 9 pred 112 golden 112
+frame 10 pred 112 golden 112
+frame 11 pred 112 golden 112
+frame 12 pred 112 golden 112
+frame 13 pred 112 golden 112
+frame 14 pred 112 golden 112
+frame 15 pred 112 golden 112
+wrote /mnt/d/robotic_research/corpus/papers/microvla/extracts/microvla_example.json n 16

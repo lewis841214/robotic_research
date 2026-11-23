@@ -140,7 +140,7 @@
             "action_name": "motion token",
             "dim": null,
             "checkpoint_path": null,
-            "note": "No clip aligns a teleop frame with a trained CompVLA checkpoint's action and the logged motion token."
+            "note": "No frame-aligned clip. CompVLA has no public checkpoint to run on a teleop frame."
           },
           "sources": []
         }
@@ -232,7 +232,7 @@
         ]
       }
     ],
-    "runtime": "No repository was cloned, so there is no AST outline and no torch print."
+    "runtime": "repo_role is none. This walk skipped inference and training. No public repository or checkpoint was found, so no teleop frame could be paired with a model action. See extracts/run_infer.txt."
   },
   "compute": [
     {

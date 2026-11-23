@@ -1,0 +1,9 @@
+command: WANDB_MODE=offline PYTHONUNBUFFERED=1 uv run python train.py --distill-steps 0 --steps 2 --batch-size 4 --logger none --cache runs/libero_cache_96 --runs runs/paper-card
+device: cuda:0 NVIDIA GeForce RTX 5070 Ti
+cwd: corpus/papers/microvla/repo
+note: Same train.py entry as the README. --distill-steps 0 skips the SigLIP stage. --steps 2 is two AdamW updates, not the README schedule of 1000 distillation steps plus 8000 flow-matching steps. --batch-size 4 is smaller than the default 32. --logger none skips TensorBoard.
+exit_code: 0
+
+{"parameters": {"vision": 1893952, "backbone": 5704704, "action_expert": 2265600, "embeddings_and_heads": 616455, "total": 10480711}, "cache_bytes": 2933478600, "optimizer_parameters": {"adamw": 10480711, "muon": 0}, "estimated_hours": 0.000462962962962963, "estimate": "unmeasured 3050 heuristic; measured ETA follows after 50 steps"}
+{"phase": "train", "step": 2, "loss": 1.3137191534042358, "steps_per_s": 1.2442633905139238, "eta_minutes": 0.0, "peak_ram_mb": 2167.92578125, "peak_vram_mb": 327.6865234375}
+{"step": 2, "val_loss": 1.264892578125}

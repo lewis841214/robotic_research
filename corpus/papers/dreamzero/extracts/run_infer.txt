@@ -1,0 +1,4 @@
+command: not run
+device: cuda:0 NVIDIA GeForce RTX 5070 Ti, 16303 MiB
+note: README inference is `torch.distributed.run --nproc_per_node=2 socket_test_optimized_AR.py` with GEAR-Dreams/DreamZero-DROID. The model card on that path is the 14B Wan checkpoint. The AgiBot checkpoint listed for post-training is about 45 GB. This GPU is 16 GB and there is one device, so the named checkpoint does not fit locally and was not downloaded.
+exit_code: not run

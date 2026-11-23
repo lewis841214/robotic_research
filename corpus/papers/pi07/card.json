@@ -103,7 +103,7 @@
             "action_name": "a_t",
             "dim": null,
             "checkpoint_path": null,
-            "note": "No clip aligns an observation frame with a trained pi0.7 checkpoint's action and the logged action chunk."
+            "note": "No frame-aligned clip. pi0.7 has no public checkpoint to run on an observation frame."
           },
           "sources": []
         }
@@ -190,7 +190,7 @@
         ]
       }
     ],
-    "runtime": "No pi0.7 code was cloned. openpi was left uncloned because its README does not list this model."
+    "runtime": "repo_role is none. This walk skipped inference and training. openpi was not used as this paper's code, and no public pi0.7 checkpoint exists to align with a frame. See extracts/run_infer.txt."
   },
   "compute": [
     {

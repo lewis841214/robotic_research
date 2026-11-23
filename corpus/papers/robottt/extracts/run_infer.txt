@@ -1,0 +1,5 @@
+command: PYTHONPATH=corpus/papers/robottt/repo supermimic/.venv/bin/python -c "from robo_ttt import MemoryKeyValueBind, TTTWrapper"
+device: cpu import, before any forward
+note: The unofficial README's inference example is a random tensor through TTTWrapper, not a robot checkpoint. The import failed before that forward.
+error: ModuleNotFoundError: No module named 'einx'
+exit_code: 1
